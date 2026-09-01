@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://core/scene_management/spawn_point.gd" id="1"]
 [ext_resource type="Script" path="res://core/physics_grab/grabbable.gd" id="2"]
 [ext_resource type="Script" path="res://core/interaction/interactable_component.gd" id="3"]
 [ext_resource type="Script" path="res://core/dialogue/dialogue_trigger.gd" id="4"]
 [ext_resource type="Resource" path="res://resources/dialogues/demo_greeting.tres" id="5"]
+[ext_resource type="PackedScene" path="res://levels/demo/animation_demo.tscn" id="6"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(20, 0.2, 20)
@@ -73,3 +74,6 @@ prompt_text_key = "UI_INTERACT_TALK"
 [node name="DialogueTrigger" type="Node" parent="NPC"]
 script = ExtResource("4")
 dialogue = ExtResource("5")
+
+[node name="AnimationDemo" parent="." instance=ExtResource("6")]
+position = Vector3(-1.5, 0.5, -1.5)

@@ -1,0 +1,51 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://core/animation/animation_controller.gd" id="1_8x2rf"]
+[ext_resource type="Resource" path="res://resources/animation_sets/humanoid_example.tres" id="2_wq5m1"]
+[ext_resource type="Script" path="res://levels/demo/animation_demo_cycler.gd" id="3_fpf4a"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_o5761"]
+radius = 0.3
+height = 1.0
+
+[sub_resource type="Animation" id="Animation_d28e0"]
+length = 2.0
+loop_mode = 1
+tracks/0/type = "position_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Mesh")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 1, 0, 0.15, 0, 2, 1, 0, 0, 0)
+
+[sub_resource type="Animation" id="Animation_ddkgk"]
+loop_mode = 1
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Mesh")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.5, 1, 0, 1, 0, -4.371139e-08, 1, 1, 0, -8.742278e-08, 0, -1)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_hgbbn"]
+_data = {
+&"idle": SubResource("Animation_d28e0"),
+&"walk": SubResource("Animation_ddkgk")
+}
+
+[node name="AnimationDemo" type="Node3D" unique_id=43327654]
+
+[node name="Mesh" type="MeshInstance3D" parent="." unique_id=213931154]
+mesh = SubResource("CapsuleMesh_o5761")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=62357385]
+libraries/ = SubResource("AnimationLibrary_hgbbn")
+
+[node name="AnimationController" type="Node" parent="." unique_id=1621118706]
+script = ExtResource("1_8x2rf")
+animation_set = ExtResource("2_wq5m1")
+
+[node name="Cycler" type="Node" parent="." unique_id=1413254841]
+script = ExtResource("3_fpf4a")
