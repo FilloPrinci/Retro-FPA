@@ -185,6 +185,44 @@ already handles language), have it call
 round-trip — persistence only belongs there once a menu control is the
 thing setting it.
 
+## Previewing in the editor, without pressing Play
+
+`SettingsManager` is an autoload — autoloads don't exist while you're just
+editing a scene (they only spin up once the game actually starts), so
+none of the above shows up in the editor's 3D viewport by default. Drop
+`core/visual_style/visual_style_preview.tscn` into whatever scene you're
+editing (a level, `main.tscn`, anywhere) to preview it live instead:
+
+- Fog, ambient light, background and color grading update every frame
+  while the editor is open, straight from the current Retro Style Project
+  Settings (Visual Style + the fog override, if on).
+- `texture_filter_nearest` gets patched onto every `BaseMaterial3D` in the
+  *edited scene* the same way `SettingsManager` patches it at runtime, so
+  PS1's nearest-filter blockiness is visible directly on your level's
+  materials.
+- It's inert outside the editor — `Engine.is_editor_hint()` is false during
+  actual Play/export, so it frees itself immediately rather than competing
+  with the real `WorldEnvironment` in `ui/main/main.tscn`. Safe to leave in
+  a level's saved scene permanently if you want the preview to just always
+  be there while editing it.
+
+**Deliberately not previewed**, both for good reasons:
+
+- **Texture downsampling.** This mutates a texture's actual pixel data.
+  At Play, that's fine — everything's discarded when you stop. In the
+  editor, a session can stay open for hours, and if you hit Ctrl+S while a
+  downsampled copy is loaded in memory, Godot can bake that lossy resize
+  into the saved resource, permanently degrading the source art. Press
+  Play to check this one instead of previewing it live.
+- **Resolution forcing.** This is a property of the actual game window
+  (`DisplayServer`/`Window`), which has no equivalent inside the editor's
+  own viewport — there's nothing to preview here even in principle.
+
+`VisualStyleProfile.apply_to_environment()` and `.resolve_texture_filter()`
+are the shared logic behind both the preview script and
+`SettingsManager` — added specifically so the two never drift apart into
+two slightly-different implementations of the same thing.
+
 ## Scope and what's not covered
 
 The look that most reads as "PS1" — wobbling vertices (affine precision

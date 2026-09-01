@@ -51,16 +51,10 @@ const FORCE_RESOLUTION_SETTING := "retro_style/force_resolution"
 const FORCED_RESOLUTION_SETTING := "retro_style/forced_resolution"
 const FORCE_TEXTURE_DOWNSAMPLE_SETTING := "retro_style/force_texture_downsample"
 const MAX_TEXTURE_SIZE_SETTING := "retro_style/max_texture_size"
-
-## Fog override: same idea as above — when on, these replace the active
-## VisualStyleProfile's fog_* fields entirely (including turning fog off
-## regardless of what the style normally does). See docs/visual_style.md.
-const OVERRIDE_FOG_SETTING := "retro_style/override_fog"
-const FOG_ENABLED_SETTING := "retro_style/fog_enabled"
-const FOG_COLOR_SETTING := "retro_style/fog_color"
-const FOG_DENSITY_SETTING := "retro_style/fog_density"
-const FOG_DEPTH_BEGIN_SETTING := "retro_style/fog_depth_begin"
-const FOG_DEPTH_END_SETTING := "retro_style/fog_depth_end"
+## The fog override settings (retro_style/override_fog and its 5 fog_*
+## values) are read inside VisualStyleProfile.apply_to_environment()
+## instead of here — that's the single copy shared with the editor
+## preview script, which has no SettingsManager to read constants from.
 
 var master_volume: float = 1.0
 var music_volume: float = 1.0
@@ -203,33 +197,7 @@ func _apply_visual_style() -> void:
 		env = Environment.new()
 		_world_environment.environment = env
 
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = profile.background_color
-
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = profile.ambient_light_color
-	env.ambient_light_energy = profile.ambient_light_energy
-
-	if ProjectSettings.get_setting(OVERRIDE_FOG_SETTING, false):
-		env.fog_enabled = ProjectSettings.get_setting(FOG_ENABLED_SETTING, true)
-		env.fog_light_color = ProjectSettings.get_setting(FOG_COLOR_SETTING, Color(0.5, 0.5, 0.55))
-		env.fog_density = ProjectSettings.get_setting(FOG_DENSITY_SETTING, 0.02)
-		env.fog_depth_begin = ProjectSettings.get_setting(FOG_DEPTH_BEGIN_SETTING, 10.0)
-		env.fog_depth_end = ProjectSettings.get_setting(FOG_DEPTH_END_SETTING, 60.0)
-	else:
-		env.fog_enabled = profile.fog_enabled
-		env.fog_light_color = profile.fog_color
-		env.fog_density = profile.fog_density
-		env.fog_depth_begin = profile.fog_depth_begin
-		env.fog_depth_end = profile.fog_depth_end
-
-	env.tonemap_mode = profile.tonemap_mode
-	env.tonemap_exposure = profile.tonemap_exposure
-
-	env.adjustment_enabled = profile.adjustment_enabled
-	env.adjustment_brightness = profile.adjustment_brightness
-	env.adjustment_contrast = profile.adjustment_contrast
-	env.adjustment_saturation = profile.adjustment_saturation
+	profile.apply_to_environment(env)
 
 
 ## Walks the live scene tree and, on every BaseMaterial3D it finds: sets
@@ -244,15 +212,7 @@ func _apply_material_patches() -> void:
 	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
 	if profile == null or not is_inside_tree():
 		return
-	# anisotropic_filtering_level only has an effect on a material using an
-	# "Anisotropic" filter mode — the global project setting alone (set by
-	# tools/setup_project.gd) doesn't apply it to materials that don't.
-	var use_aniso := profile.anisotropic_filtering_level > 0
-	var filter: BaseMaterial3D.TextureFilter
-	if profile.texture_filter_nearest:
-		filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	else:
-		filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	var filter := profile.resolve_texture_filter()
 
 	var force_downsample: bool = ProjectSettings.get_setting(FORCE_TEXTURE_DOWNSAMPLE_SETTING, false)
 	var max_texture_size: int = -1

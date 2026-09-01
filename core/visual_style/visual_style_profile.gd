@@ -50,3 +50,48 @@ extends Resource
 # active. They live as their own Project Settings (Retro Style category,
 # added by addons/retro_visual_style, same as Visual Style itself) and are
 # read directly by SettingsManager — see docs/visual_style.md.
+
+
+## Applies this profile's fog/ambient/background/color-grading fields to
+## `env` — honoring the Fog Override Project Settings if Override Fog is
+## on (see docs/visual_style.md), same as a runtime apply would. Shared by
+## SettingsManager (at runtime) and core/visual_style/visual_style_preview.gd
+## (in the editor), so both apply identically with no duplicated logic.
+func apply_to_environment(env: Environment) -> void:
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = background_color
+
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = ambient_light_color
+	env.ambient_light_energy = ambient_light_energy
+
+	if ProjectSettings.get_setting("retro_style/override_fog", false):
+		env.fog_enabled = ProjectSettings.get_setting("retro_style/fog_enabled", true)
+		env.fog_light_color = ProjectSettings.get_setting("retro_style/fog_color", Color(0.5, 0.5, 0.55))
+		env.fog_density = ProjectSettings.get_setting("retro_style/fog_density", 0.02)
+		env.fog_depth_begin = ProjectSettings.get_setting("retro_style/fog_depth_begin", 10.0)
+		env.fog_depth_end = ProjectSettings.get_setting("retro_style/fog_depth_end", 60.0)
+	else:
+		env.fog_enabled = fog_enabled
+		env.fog_light_color = fog_color
+		env.fog_density = fog_density
+		env.fog_depth_begin = fog_depth_begin
+		env.fog_depth_end = fog_depth_end
+
+	env.tonemap_mode = tonemap_mode
+	env.tonemap_exposure = tonemap_exposure
+
+	env.adjustment_enabled = adjustment_enabled
+	env.adjustment_brightness = adjustment_brightness
+	env.adjustment_contrast = adjustment_contrast
+	env.adjustment_saturation = adjustment_saturation
+
+
+## Resolves this profile's texture_filter_nearest/anisotropic_filtering_level
+## into the matching BaseMaterial3D.TextureFilter enum value. Shared by
+## SettingsManager and the editor preview script.
+func resolve_texture_filter() -> BaseMaterial3D.TextureFilter:
+	var use_aniso := anisotropic_filtering_level > 0
+	if texture_filter_nearest:
+		return BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	return BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
