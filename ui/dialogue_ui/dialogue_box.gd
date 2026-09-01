@@ -6,7 +6,7 @@ extends Control
 @onready var speaker_label: Label = $Panel/VBox/SpeakerLabel
 @onready var text_label: Label = $Panel/VBox/TextLabel
 @onready var choices_box: VBoxContainer = $Panel/VBox/Choices
-@onready var continue_prompt: Label = $Panel/VBox/ContinuePrompt
+@onready var continue_prompt: Button = $Panel/VBox/ContinuePrompt
 
 var _has_choices: bool = false
 
@@ -17,6 +17,7 @@ func _ready() -> void:
 	DialogueManager.line_changed.connect(_on_line_changed)
 	DialogueManager.choices_presented.connect(_on_choices_presented)
 	DialogueManager.dialogue_ended.connect(_on_dialogue_ended)
+	continue_prompt.pressed.connect(DialogueManager.advance)
 
 
 func _unhandled_input(event: InputEvent) -> void:

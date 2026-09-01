@@ -35,6 +35,6 @@ autowrap_mode = 2
 [node name="Choices" type="VBoxContainer" parent="Panel/VBox"]
 visible = false
 
-[node name="ContinuePrompt" type="Label" parent="Panel/VBox"]
-horizontal_alignment = 2
+[node name="ContinuePrompt" type="Button" parent="Panel/VBox"]
+size_flags_horizontal = 8
 text = "UI_DIALOGUE_CONTINUE"
