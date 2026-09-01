@@ -129,7 +129,7 @@ secondary_action={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://translations/dialogue.en.translation", "res://translations/dialogue.it.translation", "res://translations/ui.en.translation", "res://translations/ui.it.translation")
+locale/translations=PackedStringArray("res://translations/dialogue.en.translation", "res://translations/dialogue.it.translation", "res://translations/items.en.translation", "res://translations/items.it.translation", "res://translations/ui.en.translation", "res://translations/ui.it.translation")
 
 [physics]
 

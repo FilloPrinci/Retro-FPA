@@ -3,6 +3,9 @@ extends Node3D
 ## RigidBody3D, hold it in front of the camera, optionally rotate it with
 ## the mouse, then throw it or just drop it. General-purpose — works on any
 ## RigidBody3D that has a Grabbable child, nothing scene-specific here.
+##
+## Yields to an equipped item (see EquippedItemInput): you can't grab world
+## props while holding a weapon, "primary_action" attacks/fires instead.
 
 @export var grab_range: float = 3.0
 @export var hold_stiffness: float = 20.0
@@ -26,7 +29,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if not GameManager.control_enabled:
+	if not GameManager.control_enabled or InventoryManager.get_equipped_item() != null:
 		if _held_body:
 			_release()
 		return

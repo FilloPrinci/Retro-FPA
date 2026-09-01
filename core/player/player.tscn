@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://core/player/player.gd" id="1"]
 [ext_resource type="Script" path="res://core/player/head_bob.gd" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://core/physics_grab/grabber.gd" id="4"]
 [ext_resource type="Script" path="res://core/audio/footstep_component.gd" id="5"]
 [ext_resource type="Script" path="res://core/inventory/equip_hotbar.gd" id="6"]
+[ext_resource type="Script" path="res://core/inventory/equipped_item_input.gd" id="7"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
 radius = 0.4
@@ -41,3 +42,6 @@ script = ExtResource("5")
 
 [node name="EquipHotbar" type="Node" parent="."]
 script = ExtResource("6")
+
+[node name="EquippedItemInput" type="Node" parent="."]
+script = ExtResource("7")

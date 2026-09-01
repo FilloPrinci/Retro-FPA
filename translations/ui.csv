@@ -26,3 +26,4 @@ UI_DIALOGUE_CONTINUE,Continue,Continua
 UI_INTERACT_DEFAULT,Interact,Interagisci
 UI_INTERACT_TALK,Talk,Parla
 UI_INTERACT_OPEN,Open,Apri
+UI_INTERACT_TAKE,Take,Prendi

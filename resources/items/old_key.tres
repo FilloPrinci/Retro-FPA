@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/icon_key.png" id="1_bvm3p"]
+[ext_resource type="Script" path="res://core/inventory/item_data.gd" id="2_u05s1"]
+
+[resource]
+script = ExtResource("2_u05s1")
+id = "old_key"
+display_name_key = "ITEM_OLD_KEY_NAME"
+description_key = "ITEM_OLD_KEY_DESC"
+icon = ExtResource("1_bvm3p")
+item_type = 2
+stackable = false
+max_stack = 1
