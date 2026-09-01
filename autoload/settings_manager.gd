@@ -175,6 +175,12 @@ func _apply_resolution() -> void:
 	if is_resolution_forced():
 		window.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
 		window.content_scale_size = ProjectSettings.get_setting(FORCED_RESOLUTION_SETTING, Vector2i(320, 240))
+		# Default is ASPECT_IGNORE, which stretches non-uniformly (distorts)
+		# whenever the window's aspect ratio doesn't match the forced
+		# resolution's. KEEP preserves the forced resolution's aspect ratio
+		# and letterboxes/pillarboxes instead — correct for a retro pixelated
+		# look, where distortion would look like a bug, not an aesthetic.
+		window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	else:
 		window.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 
