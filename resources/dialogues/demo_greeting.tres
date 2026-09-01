@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="DialogueData" format=3]
+
+[ext_resource type="Script" path="res://core/dialogue/dialogue_line.gd" id="1_lsjix"]
+[ext_resource type="Script" path="res://core/dialogue/dialogue_choice.gd" id="2_kn3oe"]
+[ext_resource type="Script" path="res://core/dialogue/dialogue_data.gd" id="3_necre"]
+
+[sub_resource type="Resource" id="Resource_17us2"]
+script = ExtResource("2_kn3oe")
+text_key = "DIALOGUE_DEMO_CHOICE_YES"
+next_id = "glad"
+set_flag_key = "met_demo_npc"
+
+[sub_resource type="Resource" id="Resource_rkn2k"]
+script = ExtResource("2_kn3oe")
+text_key = "DIALOGUE_DEMO_CHOICE_NO"
+next_id = "ok_bye"
+
+[sub_resource type="Resource" id="Resource_tnc8b"]
+script = ExtResource("1_lsjix")
+id = "greet"
+speaker_name_key = "NPC_DEMO_NAME"
+text_key = "DIALOGUE_DEMO_GREET"
+choices = Array[ExtResource("2_kn3oe")]([SubResource("Resource_17us2"), SubResource("Resource_rkn2k")])
+
+[sub_resource type="Resource" id="Resource_eiql4"]
+script = ExtResource("1_lsjix")
+id = "glad"
+speaker_name_key = "NPC_DEMO_NAME"
+text_key = "DIALOGUE_DEMO_GLAD"
+next_id = "farewell"
+
+[sub_resource type="Resource" id="Resource_qde3s"]
+script = ExtResource("1_lsjix")
+id = "ok_bye"
+speaker_name_key = "NPC_DEMO_NAME"
+text_key = "DIALOGUE_DEMO_OK_BYE"
+
+[sub_resource type="Resource" id="Resource_x023e"]
+script = ExtResource("1_lsjix")
+id = "farewell"
+speaker_name_key = "NPC_DEMO_NAME"
+text_key = "DIALOGUE_DEMO_FAREWELL"
+
+[resource]
+script = ExtResource("3_necre")
+lines = Array[ExtResource("1_lsjix")]([SubResource("Resource_tnc8b"), SubResource("Resource_eiql4"), SubResource("Resource_qde3s"), SubResource("Resource_x023e")])
+start_id = "greet"

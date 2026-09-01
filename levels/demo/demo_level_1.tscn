@@ -1,7 +1,10 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://core/scene_management/spawn_point.gd" id="1"]
 [ext_resource type="Script" path="res://core/physics_grab/grabbable.gd" id="2"]
+[ext_resource type="Script" path="res://core/interaction/interactable_component.gd" id="3"]
+[ext_resource type="Script" path="res://core/dialogue/dialogue_trigger.gd" id="4"]
+[ext_resource type="Resource" path="res://resources/dialogues/demo_greeting.tres" id="5"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(20, 0.2, 20)
@@ -14,6 +17,14 @@ size = Vector3(0.5, 0.5, 0.5)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_crate"]
 size = Vector3(0.5, 0.5, 0.5)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_npc"]
+radius = 0.3
+height = 1.7
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
+radius = 0.3
+height = 1.7
 
 [node name="DemoLevel1" type="Node3D"]
 
@@ -45,3 +56,20 @@ shape = SubResource("BoxShape3D_crate")
 
 [node name="Grabbable" type="Node" parent="Crate"]
 script = ExtResource("2")
+
+[node name="NPC" type="StaticBody3D" parent="."]
+position = Vector3(1.5, 0.85, -1.5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NPC"]
+mesh = SubResource("CapsuleMesh_npc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NPC"]
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="InteractableComponent" type="Node" parent="NPC"]
+script = ExtResource("3")
+prompt_text_key = "UI_INTERACT_TALK"
+
+[node name="DialogueTrigger" type="Node" parent="NPC"]
+script = ExtResource("4")
+dialogue = ExtResource("5")

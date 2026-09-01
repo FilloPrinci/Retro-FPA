@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://ui/main/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/hud/hud.tscn" id="2"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://ui/pause_menu/pause_menu.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://ui/transition/fade_overlay.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://ui/inventory_ui/inventory_ui.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://ui/dialogue_ui/dialogue_box.tscn" id="7"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
@@ -24,6 +25,8 @@ first_level_path = "res://levels/demo/demo_level_1.tscn"
 [node name="PauseMenu" parent="UILayer" instance=ExtResource("4")]
 
 [node name="InventoryUI" parent="UILayer" instance=ExtResource("6")]
+
+[node name="DialogueBox" parent="UILayer" instance=ExtResource("7")]
 
 [node name="Transition" type="Node" parent="UILayer"]
 

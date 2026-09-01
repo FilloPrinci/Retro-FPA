@@ -1,0 +1,40 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/dialogue_ui/dialogue_box.gd" id="1"]
+
+[node name="DialogueBox" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = -180.0
+offset_right = -60.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+
+[node name="SpeakerLabel" type="Label" parent="Panel/VBox"]
+visible = false
+
+[node name="TextLabel" type="Label" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 60)
+autowrap_mode = 2
+
+[node name="Choices" type="VBoxContainer" parent="Panel/VBox"]
+visible = false
+
+[node name="ContinuePrompt" type="Label" parent="Panel/VBox"]
+horizontal_alignment = 2
+text = "UI_DIALOGUE_CONTINUE"
