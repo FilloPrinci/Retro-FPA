@@ -11,6 +11,8 @@
 [node name="Main" type="Node"]
 script = ExtResource("1")
 
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
 [node name="CurrentLevel" type="Node3D" parent="."]
 
 [node name="UILayer" type="CanvasLayer" parent="."]

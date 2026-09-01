@@ -11,6 +11,14 @@ extends SceneTree
 const AUDIO_BUS_LAYOUT_PATH := "res://resources/audio/default_bus_layout.tres"
 const ADDITIONAL_BUSES := ["Music", "SFX", "Ambient", "UI"]
 
+## Which VisualStyleProfile's texture-filter fields get baked into
+## project.godot as the default sampler settings — pick the one matching
+## this game's art direction (see docs/visual_style.md). This is a
+## renderer-startup-time default, not something safe to flip at runtime;
+## re-run this script if you change it. The rest of the profile (fog,
+## color grading) is applied at runtime instead, via SettingsManager.
+const VISUAL_STYLE_PROFILE_PATH := "res://resources/visual_style/ps1.tres"
+
 # action_name -> list of physical keycodes bound to it.
 const KEY_ACTIONS := {
 	"move_forward": [KEY_W, KEY_UP],
@@ -86,8 +94,17 @@ func _setup_audio_buses() -> void:
 
 
 func _setup_rendering_defaults() -> void:
-	# Crisp, non-blurred 2D UI (PS1/N64-style pixel art). 0 = Nearest.
-	ProjectSettings.set_setting("rendering/textures/canvas_textures/default_texture_filter", 0)
 	# No MSAA, in line with the retro low-fi look; GL Compatibility already
 	# disables most modern post-processing by default.
 	ProjectSettings.set_setting("rendering/anti_aliasing/quality/msaa_3d", 0)
+
+	var profile: VisualStyleProfile = load(VISUAL_STYLE_PROFILE_PATH)
+	if profile == null:
+		push_warning("[setup_project] VISUAL_STYLE_PROFILE_PATH did not load; texture filter defaults left untouched.")
+		return
+
+	var filter := 0 if profile.texture_filter_nearest else 1  # 0 = Nearest, 1 = Linear
+	ProjectSettings.set_setting("rendering/textures/canvas_textures/default_texture_filter", filter)
+	ProjectSettings.set_setting("rendering/textures/default_filters/use_nearest_mipmap_filter", profile.texture_filter_nearest)
+	ProjectSettings.set_setting("rendering/textures/default_filters/anisotropic_filtering_level", profile.anisotropic_filtering_level)
+	ProjectSettings.set_setting("rendering/textures/default_filters/texture_mipmap_bias", profile.mipmap_bias)

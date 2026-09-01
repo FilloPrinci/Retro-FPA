@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="VisualStyleProfile" format=3]
+
+[ext_resource type="Script" path="res://core/visual_style/visual_style_profile.gd" id="1_qub3n"]
+
+[resource]
+script = ExtResource("1_qub3n")
+texture_filter_nearest = false
+mipmap_bias = 1.0
+fog_enabled = true
+fog_color = Color(0.55, 0.55, 0.6, 1)
+fog_density = 0.03
+fog_depth_begin = 8.0
+fog_depth_end = 40.0
+ambient_light_color = Color(0.95, 0.95, 1, 1)
+ambient_light_energy = 0.9
+background_color = Color(0.55, 0.55, 0.6, 1)
+adjustment_enabled = true
+adjustment_contrast = 0.9
+adjustment_saturation = 0.85

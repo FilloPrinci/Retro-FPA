@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="VisualStyleProfile" format=3]
+
+[ext_resource type="Script" path="res://core/visual_style/visual_style_profile.gd" id="1_5mtmb"]
+
+[resource]
+script = ExtResource("1_5mtmb")
+fog_color = Color(0.4, 0.4, 0.45, 1)
+fog_density = 0.015
+fog_depth_end = 50.0
+adjustment_enabled = true
+adjustment_contrast = 1.05
+adjustment_saturation = 0.9

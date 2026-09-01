@@ -17,9 +17,10 @@ of this project. The goal is that building a new game means writing content
 systems.
 
 See "How to use this as a template" below for the concrete workflow,
-`docs/blender_workflow.md` for the animated-model pipeline, and
+`docs/blender_workflow.md` for the animated-model pipeline,
 `docs/blender_asset_guidelines.md` for asset creation guidelines across every
-category (statics, props, entities).
+category (statics, props, entities), and `docs/visual_style.md` for the
+PS1/N64/GameCube visual style system.
 
 ## Architecture summary
 
@@ -30,11 +31,12 @@ category (statics, props, entities).
   editable from the Inspector, not hardcoded in scripts.
 - **Persistent shell, disposable levels**: `ui/main/main.tscn` is the fixed
   run scene. It owns `CurrentLevel` (where level scenes are swapped in and
-  out) and `UILayer` (menus/HUD, always present). The `Player` is
-  instantiated on demand the first time gameplay starts, as a direct child
-  of Main — it survives scene changes so inventory/state persist. Level
-  scenes under `levels/` contain only geometry, `SpawnPoint`s, NPCs and
-  triggers: never the player, never menus.
+  out), `UILayer` (menus/HUD, always present) and `WorldEnvironment` (the
+  project-wide fog/color-grading look, see `docs/visual_style.md`). The
+  `Player` is instantiated on demand the first time gameplay starts, as a
+  direct child of Main — it survives scene changes so inventory/state
+  persist. Level scenes under `levels/` contain only geometry,
+  `SpawnPoint`s, NPCs and triggers: never the player, never menus.
 - **Game state drives UI, not the other way around**: `GameManager.state`
   (`MAIN_MENU` / `PLAYING` / `PAUSED` / `DIALOGUE` / `INVENTORY`) is the
   single source of truth. Menus, HUD and the player controller each react to
@@ -51,7 +53,7 @@ Registration order matters (see Project Settings > Autoload):
 | Autoload | Responsibility | Key API |
 |---|---|---|
 | `GameManager` | Global game state, control locking, save-independent flags | `register_player`/`get_player`, `set_flag`/`get_flag`, `set_control_enabled`, `state` (`GameState` enum) + `state_changed` signal |
-| `SettingsManager` | Persisted user prefs | `apply_settings`, `save_settings`/`load_settings` (`user://settings.cfg`), `settings_changed` signal |
+| `SettingsManager` | Persisted user prefs + visual style | `apply_settings`, `save_settings`/`load_settings` (`user://settings.cfg`), `register_world_environment`, `visual_style` (`VisualStyle` enum, not yet player-facing — see `docs/visual_style.md`), `settings_changed` signal |
 | `AudioManager` | Bus-based sound playback | `play_sfx_2d`/`play_sfx_3d`, `play_music`/`stop_music`, `play_ambient` |
 | `InventoryManager` | Slot-based inventory + equip state | `add_item`/`remove_item`/`has_item`, `equip_slot`/`unequip`, `inventory_changed`/`item_equipped` signals |
 | `DialogueManager` | Custom lightweight dialogue runner | `start_dialogue`, `advance`, `choose`, `end_dialogue`, `line_changed`/`choices_presented`/`dialogue_ended` signals |
@@ -92,6 +94,9 @@ project to duplicate.
    - `assets/`: your own models, textures, audio.
    - `first_level_path` export on `main_menu.gd`, pointing at the new
      game's first level.
+   - `VISUAL_STYLE_PROFILE_PATH` in `tools/setup_project.gd` and
+     `DEFAULT_VISUAL_STYLE` in `settings_manager.gd` — the game's
+     PS1/N64/GameCube look, see `docs/visual_style.md`.
 3. What never changes: everything under `autoload/`, `core/`, and the
    generic screens in `ui/` (main, hud, menus, dialogue box, inventory ui).
    That is the reusable core — new games write content, not systems.
@@ -103,9 +108,11 @@ project to duplicate.
 
 `tools/` holds headless maintenance scripts, not gameplay code:
 
-- `tools/setup_project.gd` — (re)generates the Input Map and Audio Bus
-  Layout from code (`godot --headless -s res://tools/setup_project.gd`).
-  Re-run it after changing the action/bus lists at the top of the file.
+- `tools/setup_project.gd` — (re)generates the Input Map, Audio Bus Layout
+  and the visual style's texture-filter defaults from code (`godot
+  --headless -s res://tools/setup_project.gd`). Re-run it after changing
+  the action/bus lists or `VISUAL_STYLE_PROFILE_PATH` at the top of the
+  file.
 - `tools/smoke_test.gd` — boots the persistent Main shell, starts a new game
   into the demo level, and checks the player/level/inventory came up clean
   (`godot --headless -s res://tools/smoke_test.gd`). Useful after touching
