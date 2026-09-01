@@ -56,7 +56,7 @@ func _handle_debug_numpad_look(delta: float) -> void:
 	look_input.y = float(Input.is_key_pressed(KEY_KP_2)) - float(Input.is_key_pressed(KEY_KP_8))
 	if look_input == Vector2.ZERO:
 		return
-	_apply_look_delta(look_input.x * DEBUG_NUMPAD_LOOK_SPEED * delta, look_input.y * DEBUG_NUMPAD_LOOK_SPEED * delta)
+	_apply_look_delta(-look_input.x * DEBUG_NUMPAD_LOOK_SPEED * delta, -look_input.y * DEBUG_NUMPAD_LOOK_SPEED * delta)
 
 
 func _apply_look_delta(yaw_delta: float, pitch_delta: float) -> void:
