@@ -11,13 +11,21 @@ extends SceneTree
 const AUDIO_BUS_LAYOUT_PATH := "res://resources/audio/default_bus_layout.tres"
 const ADDITIONAL_BUSES := ["Music", "SFX", "Ambient", "UI"]
 
-## Which VisualStyleProfile's texture-filter fields get baked into
-## project.godot as the default sampler settings — pick the one matching
-## this game's art direction (see docs/visual_style.md). This is a
-## renderer-startup-time default, not something safe to flip at runtime;
-## re-run this script if you change it. The rest of the profile (fog,
-## color grading) is applied at runtime instead, via SettingsManager.
-const VISUAL_STYLE_PROFILE_PATH := "res://resources/visual_style/ps1.tres"
+## The chosen style — Project Settings > General > Retro Style > Visual
+## Style (added by addons/retro_visual_style), 0/1/2 = PS1/N64/GameCube —
+## picks which VisualStyleProfile's texture-filter fields get baked into
+## project.godot as the default sampler settings (see docs/visual_style.md).
+## This is a renderer-startup-time default, not something safe to flip at
+## runtime; re-run this script after changing it. The rest of the profile
+## (fog, color grading, and the actual nearest/linear material filter) is
+## applied at runtime instead, via SettingsManager, which reads the same
+## Project Setting.
+const VISUAL_STYLE_SETTING := "retro_style/visual_style"
+const VISUAL_STYLE_PROFILE_PATHS := [
+	"res://resources/visual_style/ps1.tres",
+	"res://resources/visual_style/n64.tres",
+	"res://resources/visual_style/gamecube.tres",
+]
 
 # action_name -> list of physical keycodes bound to it.
 const KEY_ACTIONS := {
@@ -98,9 +106,13 @@ func _setup_rendering_defaults() -> void:
 	# disables most modern post-processing by default.
 	ProjectSettings.set_setting("rendering/anti_aliasing/quality/msaa_3d", 0)
 
-	var profile: VisualStyleProfile = load(VISUAL_STYLE_PROFILE_PATH)
+	var style_index: int = ProjectSettings.get_setting(VISUAL_STYLE_SETTING, 0)
+	if style_index < 0 or style_index >= VISUAL_STYLE_PROFILE_PATHS.size():
+		push_warning("[setup_project] '%s' is out of range (%d); defaulting to PS1." % [VISUAL_STYLE_SETTING, style_index])
+		style_index = 0
+	var profile: VisualStyleProfile = load(VISUAL_STYLE_PROFILE_PATHS[style_index])
 	if profile == null:
-		push_warning("[setup_project] VISUAL_STYLE_PROFILE_PATH did not load; texture filter defaults left untouched.")
+		push_warning("[setup_project] Visual style profile did not load; texture filter defaults left untouched.")
 		return
 
 	var filter := 0 if profile.texture_filter_nearest else 1  # 0 = Nearest, 1 = Linear

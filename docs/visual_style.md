@@ -31,9 +31,8 @@ with mipmaps) rather than inheriting a project-wide default the way
 material in the game use nearest filtering.
 
 - **`mipmap_bias` and `anisotropic_filtering_level`** genuinely are global
-  renderer defaults. **`tools/setup_project.gd`** reads the profile named
-  by its `VISUAL_STYLE_PROFILE_PATH` constant and bakes these into
-  `project.godot` when you (re-)run it.
+  renderer defaults. **`tools/setup_project.gd`** reads the chosen style
+  and bakes these into `project.godot` when you (re-)run it.
 - **`texture_filter_nearest`** has no such global knob, so
   **`SettingsManager`** patches it directly onto every `BaseMaterial3D` it
   can find, by walking the live scene tree — once in `apply_settings()`,
@@ -51,17 +50,28 @@ material in the game use nearest filtering.
 
 ## Choosing the style for a new game
 
-Both places default to PS1. To use a different style:
+Both mechanisms read the same source: **Project > Project Settings >
+General > Retro Style > Visual Style** — a PS1/N64/GameCube dropdown added
+by `addons/retro_visual_style` (an `EditorPlugin`, enabled by default; the
+raw value lives at `retro_style/visual_style` in `project.godot`, 0/1/2).
+No script editing needed for the common case:
 
-1. Open `tools/setup_project.gd` and point `VISUAL_STYLE_PROFILE_PATH` at
-   `res://resources/visual_style/n64.tres` (or `gamecube.tres`), then
-   re-run it: `godot --headless -s res://tools/setup_project.gd`.
-2. Open `autoload/settings_manager.gd` and change `DEFAULT_VISUAL_STYLE` to
-   match (`SettingsManager.VisualStyle.N64` / `.GAMECUBE`).
+1. Pick the style in Project Settings and close the dialog (it saves
+   `project.godot` immediately).
+2. Press Play — fog, color grading, background and the nearest/linear
+   material filter already reflect the new style, since `SettingsManager`
+   reads the same setting as its default at startup.
+3. Re-run `godot --headless -s res://tools/setup_project.gd` once to also
+   bake the mipmap bias/anisotropic level into `project.godot` — these two
+   are true renderer-startup defaults, so they only take effect after a
+   (re-)run, not just from changing the Project Setting. Skip this if
+   you're only comparing styles quickly; do it before shipping so all three
+   knobs agree.
 
-Do both — the mipmap bias/anisotropic level baked by step 1 and the
-material patching driven by step 2 need to agree, or you get a mix of two
-styles.
+`SettingsManager.VISUAL_STYLE_SETTING` and
+`tools/setup_project.gd::VISUAL_STYLE_SETTING` both point at
+`retro_style/visual_style` — there's one value to change, not two
+constants to keep in sync.
 
 ## Not (yet) a player-facing setting
 

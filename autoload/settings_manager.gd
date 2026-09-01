@@ -12,13 +12,16 @@ const DEFAULT_MOUSE_SENSITIVITY := 0.15
 const DEFAULT_LOCALE := "en"
 
 ## Retro rendering look, applied via a VisualStyleProfile — see
-## core/visual_style/visual_style_profile.gd and docs/visual_style.md.
-## Not currently exposed in the Settings menu: this is meant as a per-game
-## art-direction choice (change DEFAULT_VISUAL_STYLE for your game), not a
-## player-facing option yet. The plumbing (persistence, runtime apply) is
+## core/visual_style/visual_style_profile.gd and docs/visual_style.md. The
+## default comes from the "Visual Style" Project Setting (Project >
+## Project Settings > General > Retro Style, added by
+## addons/retro_visual_style) rather than a constant here, so picking a
+## style doesn't mean editing scripts. Not currently exposed in the
+## Settings menu: this is meant as a per-game art-direction choice, not a
+## player-facing option yet — the plumbing (persistence, runtime apply) is
 ## already here so exposing it later is just adding a menu control.
 enum VisualStyle { PS1, N64, GAMECUBE }
-const DEFAULT_VISUAL_STYLE := VisualStyle.PS1
+const VISUAL_STYLE_SETTING := "retro_style/visual_style"
 const VISUAL_STYLE_PROFILES := {
 	VisualStyle.PS1: preload("res://resources/visual_style/ps1.tres"),
 	VisualStyle.N64: preload("res://resources/visual_style/n64.tres"),
@@ -31,7 +34,7 @@ var sfx_volume: float = 1.0
 var ambient_volume: float = 1.0
 var mouse_sensitivity: float = DEFAULT_MOUSE_SENSITIVITY
 var locale: String = DEFAULT_LOCALE
-var visual_style: VisualStyle = DEFAULT_VISUAL_STYLE
+var visual_style: VisualStyle = _get_project_default_visual_style()
 
 ## Set by main.gd once the persistent shell's WorldEnvironment exists —
 ## autoloads are ready before the main scene, so apply_settings() may run
@@ -61,6 +64,14 @@ func load_settings() -> void:
 		locale = config.get_value(SECTION, "locale", locale)
 		visual_style = config.get_value(SECTION, "visual_style", visual_style) as VisualStyle
 	apply_settings()
+
+
+## The game's chosen style, read from the "retro_style/visual_style"
+## Project Setting (see addons/retro_visual_style) — falls back to PS1 if
+## it was never set. Only used as visual_style's initial value; once
+## user://settings.cfg has a saved value, that wins instead.
+func _get_project_default_visual_style() -> VisualStyle:
+	return ProjectSettings.get_setting(VISUAL_STYLE_SETTING, VisualStyle.PS1) as VisualStyle
 
 
 func save_settings() -> void:

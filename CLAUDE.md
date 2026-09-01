@@ -94,12 +94,12 @@ project to duplicate.
    - `assets/`: your own models, textures, audio.
    - `first_level_path` export on `main_menu.gd`, pointing at the new
      game's first level.
-   - `VISUAL_STYLE_PROFILE_PATH` in `tools/setup_project.gd` and
-     `DEFAULT_VISUAL_STYLE` in `settings_manager.gd` — the game's
+   - Project Settings > General > Retro Style > Visual Style — the game's
      PS1/N64/GameCube look, see `docs/visual_style.md`.
-3. What never changes: everything under `autoload/`, `core/`, and the
-   generic screens in `ui/` (main, hud, menus, dialogue box, inventory ui).
-   That is the reusable core — new games write content, not systems.
+3. What never changes: everything under `autoload/`, `core/`, `addons/`,
+   and the generic screens in `ui/` (main, hud, menus, dialogue box,
+   inventory ui). That is the reusable core — new games write content, not
+   systems.
 4. Bug fixes or improvements made to a core system while working on a
    specific game should be ported back to the master template copy so future
    games inherit them.
@@ -111,8 +111,8 @@ project to duplicate.
 - `tools/setup_project.gd` — (re)generates the Input Map, Audio Bus Layout
   and the visual style's texture-filter defaults from code (`godot
   --headless -s res://tools/setup_project.gd`). Re-run it after changing
-  the action/bus lists or `VISUAL_STYLE_PROFILE_PATH` at the top of the
-  file.
+  the action/bus lists at the top of the file, or the Visual Style project
+  setting (see `docs/visual_style.md`).
 - `tools/smoke_test.gd` — boots the persistent Main shell, starts a new game
   into the demo level, and checks the player/level/inventory came up clean
   (`godot --headless -s res://tools/smoke_test.gd`). Useful after touching
