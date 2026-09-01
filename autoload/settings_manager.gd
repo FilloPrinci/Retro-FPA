@@ -202,7 +202,22 @@ func _apply_fullscreen() -> void:
 ## general apply_settings() path. The forced-resolution pixelation itself
 ## is separate — see is_resolution_forced()'s doc comment and
 ## tools/setup_project.gd::_setup_window_stretch().
+##
+## Skipped entirely when the resolution is forced: the outer window size
+## in that case is already correctly established at window-creation time
+## by display/window/size/window_width_override/window_height_override
+## (baked by tools/setup_project.gd), and window_resolution isn't even
+## player-facing then (the Settings menu hides the Resolution dropdown —
+## see is_resolution_forced()). Re-touching window.size here was a
+## suspected cause of the reported "Settings panel pinned to the
+## top-left corner, not centered" bug in exported builds specifically: an
+## explicit resize *after* the window/stretch system has already set up
+## its centering, even to the same value, appears not to safely
+## recompute it — the same class of problem already found with
+## Window.content_scale_mode/content_scale_size (see 2ca4ae5).
 func _apply_window_size() -> void:
+	if is_resolution_forced():
+		return
 	var window := get_window()
 	if window == null or fullscreen:
 		return
