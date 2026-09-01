@@ -41,6 +41,13 @@ var _world_environment: WorldEnvironment = null
 
 func _ready() -> void:
 	load_settings()
+	# BaseMaterial3D always has an explicit texture_filter (default: linear
+	# with mipmaps) — it never "inherits" a project-wide default the way
+	# CanvasItem/UI textures do. So the nearest-vs-linear half of the style
+	# has to be patched onto materials directly whenever new 3D content
+	# shows up, not just set once as a project setting.
+	SceneManager.scene_change_finished.connect(func(_path): _apply_texture_filter_to_active_content())
+	GameManager.player_registered.connect(func(_player): _apply_texture_filter_to_active_content())
 
 
 func load_settings() -> void:
@@ -98,9 +105,11 @@ func _apply_bus_volume(bus_name: String, linear_volume: float) -> void:
 
 ## Applies the runtime-safe half of the chosen VisualStyleProfile (fog,
 ## ambient light, background, color grading) to the registered
-## WorldEnvironment. The texture-filter half of the profile is applied at
-## setup time instead — see tools/setup_project.gd.
+## WorldEnvironment, and (re-)patches the texture-filter half onto whatever
+## 3D content currently exists.
 func _apply_visual_style() -> void:
+	_apply_texture_filter_to_active_content()
+
 	if _world_environment == null:
 		return
 	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
@@ -132,3 +141,37 @@ func _apply_visual_style() -> void:
 	env.adjustment_brightness = profile.adjustment_brightness
 	env.adjustment_contrast = profile.adjustment_contrast
 	env.adjustment_saturation = profile.adjustment_saturation
+
+
+## Walks the live scene tree and sets texture_filter on every BaseMaterial3D
+## it finds, matching the chosen style. Mutates the shared Material
+## Resources in place (not per-instance overrides), so a material used by
+## many MeshInstance3Ds only needs to be touched once and stays consistent —
+## this only affects the running session, never anything on disk.
+## ShaderMaterials are left alone; they don't expose texture_filter this way
+## and are out of scope (see docs/visual_style.md).
+func _apply_texture_filter_to_active_content() -> void:
+	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
+	if profile == null or not is_inside_tree():
+		return
+	# anisotropic_filtering_level only has an effect on a material using an
+	# "Anisotropic" filter mode — the global project setting alone (set by
+	# tools/setup_project.gd) doesn't apply it to materials that don't.
+	var use_aniso := profile.anisotropic_filtering_level > 0
+	var filter: BaseMaterial3D.TextureFilter
+	if profile.texture_filter_nearest:
+		filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	else:
+		filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_patch_texture_filter_recursive(get_tree().root, filter)
+
+
+func _patch_texture_filter_recursive(node: Node, filter: BaseMaterial3D.TextureFilter) -> void:
+	var mesh_instance := node as MeshInstance3D
+	if mesh_instance and mesh_instance.mesh:
+		for i in mesh_instance.mesh.get_surface_count():
+			var mat := mesh_instance.get_active_material(i)
+			if mat is BaseMaterial3D:
+				(mat as BaseMaterial3D).texture_filter = filter
+	for child in node.get_children():
+		_patch_texture_filter_recursive(child, filter)

@@ -20,22 +20,34 @@ These are starting points (`resources/visual_style/ps1.tres`, `n64.tres`,
 `gamecube.tres`) — tune the fields to taste for your game, they aren't
 meant to be precise console specs.
 
-## Two layers, applied at two different times
+## Two mechanisms, because 3D materials don't have a global default
 
 `VisualStyleProfile` (`core/visual_style/visual_style_profile.gd`) has two
-groups of fields, because they're safe to change at different points:
+groups of fields, applied two different ways — not because one is more
+"runtime-safe" than the other, but because **`BaseMaterial3D` (and imported
+glTF materials) always has an explicit `texture_filter`** (default: linear
+with mipmaps) rather than inheriting a project-wide default the way
+`CanvasItem`/UI textures do. There is no single setting that makes every 3D
+material in the game use nearest filtering.
 
-- **Texture filtering** (`texture_filter_nearest`, `mipmap_bias`,
-  `anisotropic_filtering_level`) are default sampler settings — meaningful
-  at renderer-startup time, not something to flip while the game is
-  running. **`tools/setup_project.gd`** reads the profile named by its
-  `VISUAL_STYLE_PROFILE_PATH` constant and bakes these into `project.godot`
-  when you (re-)run it.
+- **`mipmap_bias` and `anisotropic_filtering_level`** genuinely are global
+  renderer defaults. **`tools/setup_project.gd`** reads the profile named
+  by its `VISUAL_STYLE_PROFILE_PATH` constant and bakes these into
+  `project.godot` when you (re-)run it.
+- **`texture_filter_nearest`** has no such global knob, so
+  **`SettingsManager`** patches it directly onto every `BaseMaterial3D` it
+  can find, by walking the live scene tree — once in `apply_settings()`,
+  and again whenever new 3D content appears
+  (`SceneManager.scene_change_finished`, `GameManager.player_registered`).
+  It mutates the shared `Material` *resources* in place, not per-instance
+  overrides, so a material reused across many meshes only needs patching
+  once and stays consistent — this only affects the running session, never
+  anything saved to disk. `ShaderMaterial`s are left alone (see
+  [Scope and what's not covered](#scope-and-whats-not-covered)).
 - **Fog, ambient light, background, color grading** are plain `Environment`
-  properties — safe to change at any time. **`SettingsManager`** applies
-  these to the persistent shell's `WorldEnvironment`
-  (`ui/main/main.tscn`) every time `apply_settings()` runs, based on
-  `SettingsManager.visual_style`.
+  properties — safe to change at any time. `SettingsManager` applies these
+  to the persistent shell's `WorldEnvironment` (`ui/main/main.tscn`) the
+  same way.
 
 ## Choosing the style for a new game
 
@@ -47,9 +59,9 @@ Both places default to PS1. To use a different style:
 2. Open `autoload/settings_manager.gd` and change `DEFAULT_VISUAL_STYLE` to
    match (`SettingsManager.VisualStyle.N64` / `.GAMECUBE`).
 
-Do both — they're independent because of the timing split above, and
-leaving them mismatched means the baked texture filter and the runtime
-fog/color grading come from two different styles.
+Do both — the mipmap bias/anisotropic level baked by step 1 and the
+material patching driven by step 2 need to agree, or you get a mix of two
+styles.
 
 ## Not (yet) a player-facing setting
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://core/scene_management/spawn_point.gd" id="1"]
 [ext_resource type="Script" path="res://core/physics_grab/grabbable.gd" id="2"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://core/dialogue/dialogue_trigger.gd" id="4"]
 [ext_resource type="Resource" path="res://resources/dialogues/demo_greeting.tres" id="5"]
 [ext_resource type="PackedScene" path="res://levels/demo/animation_demo.tscn" id="6"]
+[ext_resource type="Texture2D" path="res://assets/textures/test_checkerboard.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/textures/test_grid.png" id="8"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(20, 0.2, 20)
@@ -26,6 +28,20 @@ height = 1.7
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
 radius = 0.3
 height = 1.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_filter_panel"]
+size = Vector3(5, 3.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_filter_panel"]
+size = Vector3(5, 3.5, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_checkerboard"]
+albedo_texture = ExtResource("7")
+uv1_scale = Vector3(6, 4, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grid"]
+albedo_texture = ExtResource("8")
+uv1_scale = Vector3(6, 4, 1)
 
 [node name="DemoLevel1" type="Node3D"]
 
@@ -77,3 +93,23 @@ dialogue = ExtResource("5")
 
 [node name="AnimationDemo" parent="." instance=ExtResource("6")]
 position = Vector3(-1.5, 0.5, -1.5)
+
+[node name="FilterTestPanelCheckerboard" type="StaticBody3D" parent="."]
+position = Vector3(-3.5, 1.75, -6)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FilterTestPanelCheckerboard"]
+mesh = SubResource("BoxMesh_filter_panel")
+surface_material_override/0 = SubResource("StandardMaterial3D_checkerboard")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FilterTestPanelCheckerboard"]
+shape = SubResource("BoxShape3D_filter_panel")
+
+[node name="FilterTestPanelGrid" type="StaticBody3D" parent="."]
+position = Vector3(3.5, 1.75, -6)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FilterTestPanelGrid"]
+mesh = SubResource("BoxMesh_filter_panel")
+surface_material_override/0 = SubResource("StandardMaterial3D_grid")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FilterTestPanelGrid"]
+shape = SubResource("BoxShape3D_filter_panel")
