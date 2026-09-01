@@ -41,6 +41,25 @@ func _ready() -> void:
 	resolution_option.item_selected.connect(_on_resolution_selected)
 	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	back_button.pressed.connect(_on_back_pressed)
+	visibility_changed.connect(_on_visibility_changed)
+
+
+## Unlike MainMenu/PauseMenu/etc. (visible from frame 0, visibility only
+## ever toggled by GameManager.state), this Control starts hidden
+## (visible = false, baked in settings_menu.tscn) and is only ever shown
+## on demand by MainMenu/PauseMenu setting .visible directly — it's also
+## nested one level deeper (a child of whichever menu opened it, not a
+## direct UILayer child). In an exported build specifically (not editor
+## Play), a Control that's never been visible since scene creation
+## appears able to keep a full-rect anchor resolution cached from
+## whatever moment its parent chain last resolved one — which, before the
+## window/stretch setup has settled, can be stale — and never
+## recomputes it just from being toggled visible later. Force a fresh
+## recompute against the actual current viewport every time this becomes
+## visible, rather than trusting whatever anchors resolved to earlier.
+func _on_visibility_changed() -> void:
+	if visible:
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
 func set_available_locales(locales: Array[Array]) -> void:
