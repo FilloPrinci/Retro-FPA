@@ -6,16 +6,16 @@ extends Control
 
 signal closed
 
-@onready var master_slider: HSlider = $Panel/VBox/MasterRow/Slider
-@onready var music_slider: HSlider = $Panel/VBox/MusicRow/Slider
-@onready var sfx_slider: HSlider = $Panel/VBox/SfxRow/Slider
-@onready var ambient_slider: HSlider = $Panel/VBox/AmbientRow/Slider
-@onready var sensitivity_slider: HSlider = $Panel/VBox/SensitivityRow/Slider
-@onready var language_option: OptionButton = $Panel/VBox/LanguageRow/OptionButton
-@onready var resolution_row: HBoxContainer = $Panel/VBox/ResolutionRow
-@onready var resolution_option: OptionButton = $Panel/VBox/ResolutionRow/OptionButton
-@onready var resolution_forced_label: Label = $Panel/VBox/ResolutionForcedLabel
-@onready var fullscreen_check: CheckBox = $Panel/VBox/FullscreenRow/CheckBox
+@onready var master_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/MasterRow/Slider
+@onready var music_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/MusicRow/Slider
+@onready var sfx_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/SfxRow/Slider
+@onready var ambient_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/AmbientRow/Slider
+@onready var sensitivity_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/SensitivityRow/Slider
+@onready var language_option: OptionButton = $Panel/VBox/ScrollContainer/Rows/LanguageRow/OptionButton
+@onready var resolution_row: HBoxContainer = $Panel/VBox/ScrollContainer/Rows/ResolutionRow
+@onready var resolution_option: OptionButton = $Panel/VBox/ScrollContainer/Rows/ResolutionRow/OptionButton
+@onready var resolution_forced_label: Label = $Panel/VBox/ScrollContainer/Rows/ResolutionForcedLabel
+@onready var fullscreen_check: CheckBox = $Panel/VBox/ScrollContainer/Rows/FullscreenRow/CheckBox
 @onready var back_button: Button = $Panel/VBox/BackButton
 
 ## (locale_code, display_name) pairs. A specific game can call
@@ -86,8 +86,8 @@ func _load_from_settings() -> void:
 	sensitivity_slider.value = SettingsManager.mouse_sensitivity
 	fullscreen_check.button_pressed = SettingsManager.fullscreen
 
-	# The active visual style may force its own internal render resolution
-	# (see VisualStyleProfile.force_resolution_enabled) — the player's
+	# Project Settings > Retro Style > Force Resolution may force its own
+	# internal render resolution (see docs/visual_style.md) — the player's
 	# window-resolution choice wouldn't visibly do anything in that case,
 	# so swap the dropdown for an explanatory label instead of showing a
 	# control that silently does nothing.

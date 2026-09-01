@@ -73,6 +73,22 @@ changes at runtime):
   320×240-rendered game can still run in a 1920×1080 window or fullscreen,
   it just looks blocky at any size, which is the point. Off by default —
   nothing is forced and the window renders at its native size.
+
+  **This affects the UI too, not just the 3D scene** — `content_scale_size`
+  is a Window-level setting, so every `CanvasLayer`/`Control` (HUD, menus,
+  dialogue box) gets laid out and rendered within that same low-res canvas.
+  There's no separate "crisp UI over blocky 3D" split here (that would need
+  routing the 3D scene through its own `SubViewport`, which this template
+  doesn't do — a bigger change than seemed worth it for the default
+  320×240/640×480 profiles). Practically: every menu panel's fixed pixel
+  size needs to comfortably fit within the *smallest* resolution you expect
+  to force. The existing menus (`ui/main_menu`, `ui/pause_menu`,
+  `ui/settings_menu`, `ui/inventory_ui`) are all sized to fit inside
+  320×240 with margin to spare; `settings_menu.tscn` additionally wraps its
+  (longest) row list in a `ScrollContainer` so it degrades to scrolling
+  instead of clipping if you force something even smaller. Keep both in
+  mind for any new menu: size it to fit 320×240, and reach for a
+  `ScrollContainer` if the content genuinely can't be trimmed to fit.
 - **Force Texture Downsample** (`retro_style/force_texture_downsample`,
   bool) + **Max Texture Size** (`retro_style/max_texture_size`, a
   128/256/512 dropdown): when the toggle is on, every

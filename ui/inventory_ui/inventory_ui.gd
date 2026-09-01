@@ -42,7 +42,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _build_slot_buttons() -> void:
 	for i in InventoryManager.SLOT_COUNT:
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(64, 64)
+		button.custom_minimum_size = Vector2(40, 40)
 		button.expand_icon = true
 		button.pressed.connect(_on_slot_pressed.bind(i))
 		grid.add_child(button)
