@@ -7,6 +7,10 @@ extends CharacterBody3D
 ## sibling components under this node — this script only moves the body.
 
 const GRAVITY := 9.8
+## Debug-only look controls (numpad 8/2/4/6), for testing look without a
+## working relative mouse — e.g. a VM whose virtual mouse is absolute-only.
+## Stripped automatically from exported release builds via OS.is_debug_build().
+const DEBUG_NUMPAD_LOOK_SPEED := 2.0
 
 @export_group("Movement")
 @export var move_speed: float = 4.0
@@ -40,8 +44,24 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _handle_mouse_look(event: InputEventMouseMotion) -> void:
 	var sensitivity := SettingsManager.mouse_sensitivity * 0.01
-	rotate_y(-event.relative.x * sensitivity)
-	head.rotate_x(-event.relative.y * sensitivity)
+	_apply_look_delta(-event.relative.x * sensitivity, -event.relative.y * sensitivity)
+
+
+## Debug-only substitute for mouse look — see DEBUG_NUMPAD_LOOK_SPEED.
+func _handle_debug_numpad_look(delta: float) -> void:
+	if not OS.is_debug_build():
+		return
+	var look_input := Vector2.ZERO
+	look_input.x = float(Input.is_key_pressed(KEY_KP_6)) - float(Input.is_key_pressed(KEY_KP_4))
+	look_input.y = float(Input.is_key_pressed(KEY_KP_2)) - float(Input.is_key_pressed(KEY_KP_8))
+	if look_input == Vector2.ZERO:
+		return
+	_apply_look_delta(look_input.x * DEBUG_NUMPAD_LOOK_SPEED * delta, look_input.y * DEBUG_NUMPAD_LOOK_SPEED * delta)
+
+
+func _apply_look_delta(yaw_delta: float, pitch_delta: float) -> void:
+	rotate_y(yaw_delta)
+	head.rotate_x(pitch_delta)
 	head.rotation.x = clampf(head.rotation.x, deg_to_rad(-85), deg_to_rad(85))
 
 
@@ -56,6 +76,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_handle_crouch(delta)
+	_handle_debug_numpad_look(delta)
 
 	if is_on_floor() and not _is_crouching and Input.is_action_just_pressed("jump"):
 		velocity.y = jump_velocity
