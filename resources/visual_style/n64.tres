@@ -17,5 +17,3 @@ background_color = Color(0.55, 0.55, 0.6, 1)
 adjustment_enabled = true
 adjustment_contrast = 0.9
 adjustment_saturation = 0.85
-force_resolution_enabled = true
-force_texture_downsample_enabled = true

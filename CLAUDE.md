@@ -97,8 +97,9 @@ project to duplicate.
    - `assets/`: your own models, textures, audio.
    - `first_level_path` export on `main_menu.gd`, pointing at the new
      game's first level.
-   - Project Settings > General > Retro Style > Visual Style — the game's
-     PS1/N64/GameCube look, see `docs/visual_style.md`.
+   - Project Settings > General > Retro Style — Visual Style (the game's
+     PS1/N64/GameCube look), plus optional resolution forcing and texture
+     downsampling; see `docs/visual_style.md`.
 3. What never changes: everything under `autoload/`, `core/`, `addons/`,
    and the generic screens in `ui/` (main, hud, menus, dialogue box,
    inventory ui). That is the reusable core — new games write content, not

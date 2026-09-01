@@ -1,31 +1,57 @@
 @tool
 extends EditorPlugin
-## Registers "retro_style/visual_style" as a real Project Setting — Project
-## > Project Settings > General > Retro Style — with a PS1/N64/GameCube
-## dropdown, instead of requiring editing DEFAULT_VISUAL_STYLE constants in
-## settings_manager.gd and tools/setup_project.gd. Both now read this same
-## setting; see docs/visual_style.md.
+## Registers the "Retro Style" Project Settings — Project > Project
+## Settings > General > Retro Style — instead of requiring script edits
+## for these choices. Every field here is read at runtime by
+## SettingsManager (and, for the texture-filter fields, baked into
+## project.godot by tools/setup_project.gd); see docs/visual_style.md.
 ##
 ## Property hints registered here (add_property_info) aren't persisted —
 ## they have to be re-registered every editor session, hence this plugin.
-## The setting's *value*, once saved, is plain project data in
+## Each setting's *value*, once saved, is plain project data in
 ## project.godot and is read at runtime with an ordinary
 ## ProjectSettings.get_setting() call — no plugin/editor needed for that.
 
-const SETTING_NAME := "retro_style/visual_style"
 ## Order matters: index 0/1/2 must match SettingsManager.VisualStyle.
-const SETTING_HINT := "PS1,N64,GameCube"
+const VISUAL_STYLE_HINT := "PS1,N64,GameCube"
+
+## One entry per registered setting: name, default value, and an optional
+## enum hint string (Godot infers type/widget from the default value's
+## type otherwise — bool becomes a checkbox, Vector2i becomes an x/y
+## field, etc.).
+const SETTINGS := [
+	{"name": "retro_style/visual_style", "default": 0, "hint": VISUAL_STYLE_HINT},
+	{"name": "retro_style/force_resolution", "default": false},
+	{"name": "retro_style/forced_resolution", "default": Vector2i(320, 240)},
+	{"name": "retro_style/force_texture_downsample", "default": false},
+	{"name": "retro_style/max_texture_size", "default": 256, "hint": "128:128,256:256,512:512"},
+]
 
 
 func _enter_tree() -> void:
-	if not ProjectSettings.has_setting(SETTING_NAME):
-		ProjectSettings.set_setting(SETTING_NAME, 0)
+	var needs_save := false
+	for entry in SETTINGS:
+		var setting_name: String = entry["name"]
+		var default_value = entry["default"]
+
+		if not ProjectSettings.has_setting(setting_name):
+			ProjectSettings.set_setting(setting_name, default_value)
+			needs_save = true
+		ProjectSettings.set_initial_value(setting_name, default_value)
+		ProjectSettings.set_as_basic(setting_name, true)
+
+		if entry.has("hint"):
+			ProjectSettings.add_property_info({
+				"name": setting_name,
+				"type": typeof(default_value),
+				"hint": PROPERTY_HINT_ENUM,
+				"hint_string": entry["hint"],
+			})
+
+	# One save() at the end, after every setting has its initial value
+	# registered — otherwise a setting saved before set_initial_value() ran
+	# for it looks "non-default" and gets written even though it's the
+	# default, while the same setting looks properly default (and gets
+	# omitted, as intended) on any later save().
+	if needs_save:
 		ProjectSettings.save()
-	ProjectSettings.set_initial_value(SETTING_NAME, 0)
-	ProjectSettings.set_as_basic(SETTING_NAME, true)
-	ProjectSettings.add_property_info({
-		"name": SETTING_NAME,
-		"type": TYPE_INT,
-		"hint": PROPERTY_HINT_ENUM,
-		"hint_string": SETTING_HINT,
-	})

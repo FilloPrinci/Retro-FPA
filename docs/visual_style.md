@@ -15,12 +15,14 @@ line drawn here.
 | Anisotropic filtering | Off | Off | Low |
 | Fog | Off by default | Heavy, close (hides short draw distance, background color matches fog so it blends into the "sky") | Light, far |
 | Color grading | Slightly higher contrast, reduced saturation | Reduced contrast and saturation (hazy) | Neutral |
-| Internal resolution | Forced 320×240 | Forced 320×240 | Forced 640×480 |
-| Max texture size | 128px | 256px | 512px |
 
 These are starting points (`resources/visual_style/ps1.tres`, `n64.tres`,
 `gamecube.tres`) — tune the fields to taste for your game, they aren't
 meant to be precise console specs.
+
+Internal resolution and texture size are **not** part of this table — they
+apply the same way regardless of which style is active. See
+[Resolution and texture size](#resolution-and-texture-size) below.
 
 ## Two mechanisms, because 3D materials don't have a global default
 
@@ -52,27 +54,37 @@ material in the game use nearest filtering.
 
 ## Resolution and texture size
 
-Two more per-style knobs, both applied by `SettingsManager` the same way as
-`texture_filter_nearest` (a live scene-tree/window pass, not a project
-setting):
+Unlike everything above, these two are **not** `VisualStyleProfile` fields —
+they aren't really part of a specific console's "look", they're a blanket
+dev choice on top of whichever style is active, so they're their own
+Project Settings (Retro Style category, added by the same
+`addons/retro_visual_style` plugin as Visual Style itself), applied by
+`SettingsManager` the same way `texture_filter_nearest` is (a live
+scene-tree/window pass, read directly with `ProjectSettings.get_setting()`
+rather than cached — they're a fixed dev choice, not something that
+changes at runtime):
 
-- **`force_resolution_enabled` + `forced_resolution`**: when on, the game
-  renders internally at `forced_resolution` (e.g. PS1's 320×240) and
-  stretches that up to fill the window — `Window.content_scale_mode =
-  CONTENT_SCALE_MODE_VIEWPORT`. This is independent of the actual window
-  size or fullscreen state: a 320×240-rendered game can still run in a
-  1920×1080 window or fullscreen, it just looks blocky at any size, which
-  is the point. When off, nothing is forced and the window renders at its
-  native size.
-- **`force_texture_downsample_enabled` + `max_texture_size`** (128/256/512):
-  when on, every `BaseMaterial3D.albedo_texture` wider or taller than this
-  gets shrunk (aspect preserved, nearest-neighbor resize — deliberately
-  blocky, not smoothed, to match the rest of the look) the same way
+- **Force Resolution** (`retro_style/force_resolution`, bool) +
+  **Forced Resolution** (`retro_style/forced_resolution`, e.g. `320x240`):
+  when the toggle is on, the game renders internally at that resolution and
+  stretches it up to fill the window —
+  `Window.content_scale_mode = CONTENT_SCALE_MODE_VIEWPORT`. This is
+  independent of the actual window size or fullscreen state: a
+  320×240-rendered game can still run in a 1920×1080 window or fullscreen,
+  it just looks blocky at any size, which is the point. Off by default —
+  nothing is forced and the window renders at its native size.
+- **Force Texture Downsample** (`retro_style/force_texture_downsample`,
+  bool) + **Max Texture Size** (`retro_style/max_texture_size`, a
+  128/256/512 dropdown): when the toggle is on, every
+  `BaseMaterial3D.albedo_texture` wider or taller than this gets shrunk
+  (aspect preserved, nearest-neighbor resize — deliberately blocky, not
+  smoothed, to match the rest of the look) the same way
   `texture_filter_nearest` gets patched on. Only `albedo_texture`: this
   project's art direction is single-albedo, no PBR maps (see
   `docs/blender_asset_guidelines.md`), so that's the only slot that matters.
-  Already-small textures are left alone — this only ever shrinks, so it's
-  a safe no-op on repeated calls (every scene change re-applies it).
+  Already-small textures are left alone — this only ever shrinks, so it's a
+  safe no-op on repeated calls (every scene change re-applies it). Off by
+  default.
 
 ## Resolution and fullscreen: the player-facing side
 
@@ -114,6 +126,12 @@ No script editing needed for the common case:
 `tools/setup_project.gd::VISUAL_STYLE_SETTING` both point at
 `retro_style/visual_style` — there's one value to change, not two
 constants to keep in sync.
+
+Force Resolution/Forced Resolution/Force Texture Downsample/Max Texture
+Size sit right next to Visual Style in the same Project Settings category
+and take effect immediately at Play — no `setup_project.gd` re-run needed
+for those two, since `SettingsManager` reads them live rather than baking
+anything into `project.godot`.
 
 ## Not (yet) a player-facing setting
 

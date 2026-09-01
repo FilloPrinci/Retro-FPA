@@ -28,16 +28,28 @@ const VISUAL_STYLE_PROFILES := {
 	VisualStyle.GAMECUBE: preload("res://resources/visual_style/gamecube.tres"),
 }
 
-## Window size when the current style doesn't force an internal render
-## resolution — see VisualStyleProfile.force_resolution_enabled and
-## docs/visual_style.md. A curated list rather than free-form input, shown
-## as-is in the Settings menu.
+## Window size when nothing forces an internal render resolution (see
+## below). A curated list rather than free-form input, shown as-is in the
+## Settings menu.
 const RESOLUTION_CHOICES := [
 	Vector2i(1280, 720),
 	Vector2i(1600, 900),
 	Vector2i(1920, 1080),
 ]
 const DEFAULT_WINDOW_RESOLUTION := Vector2i(1280, 720)
+
+## Resolution forcing and texture downsampling: unlike Visual Style, these
+## apply the same way regardless of which retro look is active — they're a
+## blanket dev choice, not part of a specific console's "look" — so they're
+## their own Project Settings (Retro Style category, added by
+## addons/retro_visual_style) instead of VisualStyleProfile fields. Read
+## directly via ProjectSettings.get_setting(), not cached as vars, since
+## they're a fixed dev choice rather than something that changes at
+## runtime. See docs/visual_style.md.
+const FORCE_RESOLUTION_SETTING := "retro_style/force_resolution"
+const FORCED_RESOLUTION_SETTING := "retro_style/forced_resolution"
+const FORCE_TEXTURE_DOWNSAMPLE_SETTING := "retro_style/force_texture_downsample"
+const MAX_TEXTURE_SIZE_SETTING := "retro_style/max_texture_size"
 
 var master_volume: float = 1.0
 var music_volume: float = 1.0
@@ -116,12 +128,11 @@ func apply_settings() -> void:
 	settings_changed.emit()
 
 
-## Whether the active style forces its own internal render resolution —
-## the Settings menu hides its Resolution control in that case, since
+## Whether Project Settings > Retro Style > Force Resolution is on — the
+## Settings menu hides its Resolution control in that case, since
 ## window_resolution wouldn't do anything visible.
 func is_resolution_forced() -> bool:
-	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
-	return profile != null and profile.force_resolution_enabled
+	return ProjectSettings.get_setting(FORCE_RESOLUTION_SETTING, false)
 
 
 ## Called by main.gd once the persistent shell's WorldEnvironment node
@@ -154,10 +165,9 @@ func _apply_resolution() -> void:
 	if not fullscreen:
 		window.size = window_resolution
 
-	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
-	if profile != null and profile.force_resolution_enabled:
+	if is_resolution_forced():
 		window.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
-		window.content_scale_size = profile.forced_resolution
+		window.content_scale_size = ProjectSettings.get_setting(FORCED_RESOLUTION_SETTING, Vector2i(320, 240))
 	else:
 		window.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 
@@ -223,7 +233,11 @@ func _apply_material_patches() -> void:
 		filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	else:
 		filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	var max_texture_size := profile.max_texture_size if profile.force_texture_downsample_enabled else -1
+
+	var force_downsample: bool = ProjectSettings.get_setting(FORCE_TEXTURE_DOWNSAMPLE_SETTING, false)
+	var max_texture_size: int = -1
+	if force_downsample:
+		max_texture_size = ProjectSettings.get_setting(MAX_TEXTURE_SIZE_SETTING, 256)
 	_patch_material_recursive(get_tree().root, filter, max_texture_size)
 
 
