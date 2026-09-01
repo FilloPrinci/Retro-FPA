@@ -90,7 +90,10 @@ project to duplicate.
    - `project.godot`: `config/name`, `config/icon`.
    - `resources/` and `levels/`: replace the example `.tres` files (items,
      dialogue, animation sets) and demo levels with real content.
-   - `translations/*.csv`: new keys/text for that game.
+   - `translations/*.csv`: new keys/text for that game. Re-run
+     `tools/setup_project.gd` after adding a new CSV file (not just editing
+     an existing one) so its generated `.translation` resources get
+     registered — Godot doesn't auto-load them otherwise.
    - `assets/`: your own models, textures, audio.
    - `first_level_path` export on `main_menu.gd`, pointing at the new
      game's first level.
@@ -108,11 +111,12 @@ project to duplicate.
 
 `tools/` holds headless maintenance scripts, not gameplay code:
 
-- `tools/setup_project.gd` — (re)generates the Input Map, Audio Bus Layout
-  and the visual style's texture-filter defaults from code (`godot
-  --headless -s res://tools/setup_project.gd`). Re-run it after changing
-  the action/bus lists at the top of the file, or the Visual Style project
-  setting (see `docs/visual_style.md`).
+- `tools/setup_project.gd` — (re)generates the Input Map, Audio Bus Layout,
+  visual style texture-filter defaults, and the registered translations
+  list from code (`godot --headless -s res://tools/setup_project.gd`).
+  Re-run it after changing the action/bus lists at the top of the file, the
+  Visual Style project setting (see `docs/visual_style.md`), or adding a
+  new `translations/*.csv` file.
 - `tools/smoke_test.gd` — boots the persistent Main shell, starts a new game
   into the demo level, and checks the player/level/inventory came up clean
   (`godot --headless -s res://tools/smoke_test.gd`). Useful after touching

@@ -1,0 +1,21 @@
+keys,en,it
+UI_MAIN_MENU_TITLE,Retro FPA,Retro FPA
+UI_NEW_GAME,New Game,Nuova Partita
+UI_SETTINGS_TITLE,Settings,Impostazioni
+UI_QUIT,Quit,Esci
+UI_PAUSE_TITLE,Paused,Pausa
+UI_RESUME,Resume,Riprendi
+UI_MAIN_MENU,Main Menu,Menu Principale
+UI_BACK,Back,Indietro
+UI_CLOSE,Close,Chiudi
+UI_SETTINGS_MASTER_VOLUME,Master Volume,Volume Generale
+UI_SETTINGS_MUSIC_VOLUME,Music Volume,Volume Musica
+UI_SETTINGS_SFX_VOLUME,SFX Volume,Volume Effetti
+UI_SETTINGS_AMBIENT_VOLUME,Ambient Volume,Volume Ambientale
+UI_SETTINGS_MOUSE_SENSITIVITY,Mouse Sensitivity,Sensibilità Mouse
+UI_SETTINGS_LANGUAGE,Language,Lingua
+UI_INVENTORY_TITLE,Inventory,Inventario
+UI_DIALOGUE_CONTINUE,Continue,Continua
+UI_INTERACT_DEFAULT,Interact,Interagisci
+UI_INTERACT_TALK,Talk,Parla
+UI_INTERACT_OPEN,Open,Apri

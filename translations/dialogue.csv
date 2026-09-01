@@ -1,0 +1,8 @@
+keys,en,it
+NPC_DEMO_NAME,Villager,Abitante
+DIALOGUE_DEMO_GREET,"Hello there, traveler. Welcome to this humble place.","Salve, viandante. Benvenuto in questo umile luogo."
+DIALOGUE_DEMO_CHOICE_YES,Nice to meet you!,Piacere di conoscerti!
+DIALOGUE_DEMO_CHOICE_NO,I have to go.,Devo andare.
+DIALOGUE_DEMO_GLAD,"I'm glad to hear that. Take care out there.","Sono felice di sentirlo. Stai attento là fuori."
+DIALOGUE_DEMO_OK_BYE,Very well. Safe travels.,Va bene. Buon viaggio.
+DIALOGUE_DEMO_FAREWELL,"Farewell, then.","Allora, addio."

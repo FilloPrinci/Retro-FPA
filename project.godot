@@ -119,6 +119,10 @@ secondary_action={
 ]
 }
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/dialogue.en.translation", "res://translations/dialogue.it.translation", "res://translations/ui.en.translation", "res://translations/ui.it.translation")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

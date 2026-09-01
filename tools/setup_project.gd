@@ -1,9 +1,10 @@
 extends SceneTree
 ## One-off bootstrap script for the Retro FPA template.
 ##
-## Configures the Input Map and the Audio Bus Layout using the engine's own
-## APIs instead of hand-written project.godot / .tres text, so the generated
-## data is guaranteed to be in a format the editor understands.
+## Configures the Input Map, Audio Bus Layout, visual style defaults and
+## translation registration using the engine's own APIs instead of
+## hand-written project.godot / .tres text, so the generated data is
+## guaranteed to be in a format the editor understands.
 ##
 ## Usage (run once from the project root, or again any time these lists change):
 ##   godot --headless -s res://tools/setup_project.gd
@@ -51,6 +52,9 @@ const MOUSE_ACTIONS := {
 	"secondary_action": MOUSE_BUTTON_RIGHT,
 }
 
+const TRANSLATIONS_DIR := "res://translations"
+const DEFAULT_LOCALE := "en"
+
 
 func _initialize() -> void:
 	ProjectSettings.set_setting("application/config/name", "Retro FPA")
@@ -58,6 +62,7 @@ func _initialize() -> void:
 	_setup_input_map()
 	_setup_audio_buses()
 	_setup_rendering_defaults()
+	_setup_translations()
 
 	ProjectSettings.save()
 	print("[setup_project] Project settings written.")
@@ -120,3 +125,28 @@ func _setup_rendering_defaults() -> void:
 	ProjectSettings.set_setting("rendering/textures/default_filters/use_nearest_mipmap_filter", profile.texture_filter_nearest)
 	ProjectSettings.set_setting("rendering/textures/default_filters/anisotropic_filtering_level", profile.anisotropic_filtering_level)
 	ProjectSettings.set_setting("rendering/textures/default_filters/texture_mipmap_bias", profile.mipmap_bias)
+
+
+## Registers every generated translations/*.translation resource with
+## TranslationServer via a project setting — Godot doesn't auto-load
+## .translation files just because they exist on disk. Re-run this (or the
+## whole script) after adding/renaming a translations/*.csv file, so newly
+## imported .translation resources get picked up.
+func _setup_translations() -> void:
+	var translation_paths: Array = []
+	var dir := DirAccess.open(TRANSLATIONS_DIR)
+	if dir == null:
+		push_warning("[setup_project] '%s' does not exist; no translations registered." % TRANSLATIONS_DIR)
+		return
+
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if file_name.ends_with(".translation"):
+			translation_paths.append("%s/%s" % [TRANSLATIONS_DIR, file_name])
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+	translation_paths.sort()
+	ProjectSettings.set_setting("internationalization/locale/translations", PackedStringArray(translation_paths))
+	ProjectSettings.set_setting("internationalization/locale/fallback", DEFAULT_LOCALE)
