@@ -1,22 +1,29 @@
 extends Control
 ## Shared settings screen (volumes, mouse sensitivity, language, window
-## resolution/fullscreen). Instanced from both MainMenu and PauseMenu — same
-## scene, two entry points, no generic navigation stack needed for a screen
-## this shallow.
+## resolution/fullscreen), organized into Audio/Video/General tabs. Instanced
+## from both MainMenu and PauseMenu — same scene, two entry points, no
+## generic navigation stack needed for a screen this shallow.
+##
+## Every control persists immediately on change (SettingsManager.save_settings(),
+## not just apply_settings()) — settings are meant to survive a session
+## regardless of how the player leaves the menu (Back, Quit, closing the
+## window, ...), not only if they happen to press Back first.
 
 signal closed
 
-@onready var master_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/MasterRow/Slider
-@onready var music_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/MusicRow/Slider
-@onready var sfx_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/SfxRow/Slider
-@onready var ambient_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/AmbientRow/Slider
-@onready var sensitivity_slider: HSlider = $Panel/VBox/ScrollContainer/Rows/SensitivityRow/Slider
-@onready var language_option: OptionButton = $Panel/VBox/ScrollContainer/Rows/LanguageRow/OptionButton
-@onready var resolution_row: HBoxContainer = $Panel/VBox/ScrollContainer/Rows/ResolutionRow
-@onready var resolution_option: OptionButton = $Panel/VBox/ScrollContainer/Rows/ResolutionRow/OptionButton
-@onready var resolution_forced_label: Label = $Panel/VBox/ScrollContainer/Rows/ResolutionForcedLabel
-@onready var fullscreen_check: CheckBox = $Panel/VBox/ScrollContainer/Rows/FullscreenRow/CheckBox
-@onready var back_button: Button = $Panel/VBox/BackButton
+@onready var tabs: TabContainer = $Panel/VBox/Tabs
+@onready var master_slider: HSlider = $Panel/VBox/Tabs/Audio/MasterRow/Slider
+@onready var music_slider: HSlider = $Panel/VBox/Tabs/Audio/MusicRow/Slider
+@onready var sfx_slider: HSlider = $Panel/VBox/Tabs/Audio/SfxRow/Slider
+@onready var ambient_slider: HSlider = $Panel/VBox/Tabs/Audio/AmbientRow/Slider
+@onready var resolution_row: HBoxContainer = $Panel/VBox/Tabs/Video/ResolutionRow
+@onready var resolution_option: OptionButton = $Panel/VBox/Tabs/Video/ResolutionRow/OptionButton
+@onready var resolution_forced_label: Label = $Panel/VBox/Tabs/Video/ResolutionForcedLabel
+@onready var fullscreen_check: CheckBox = $Panel/VBox/Tabs/Video/FullscreenRow/CheckBox
+@onready var sensitivity_slider: HSlider = $Panel/VBox/Tabs/General/SensitivityRow/Slider
+@onready var language_option: OptionButton = $Panel/VBox/Tabs/General/LanguageRow/OptionButton
+@onready var reset_button: Button = $Panel/VBox/ButtonRow/ResetButton
+@onready var back_button: Button = $Panel/VBox/ButtonRow/BackButton
 
 ## (locale_code, display_name) pairs. A specific game can call
 ## set_available_locales() before this menu is first shown to extend this
@@ -28,18 +35,23 @@ var available_locales: Array[Array] = [
 
 
 func _ready() -> void:
+	tabs.set_tab_title(0, tr("UI_SETTINGS_TAB_AUDIO"))
+	tabs.set_tab_title(1, tr("UI_SETTINGS_TAB_VIDEO"))
+	tabs.set_tab_title(2, tr("UI_SETTINGS_TAB_GENERAL"))
+
 	_populate_language_options()
 	_populate_resolution_options()
 	_load_from_settings()
 
-	master_slider.value_changed.connect(func(v): SettingsManager.master_volume = v; SettingsManager.apply_settings())
-	music_slider.value_changed.connect(func(v): SettingsManager.music_volume = v; SettingsManager.apply_settings())
-	sfx_slider.value_changed.connect(func(v): SettingsManager.sfx_volume = v; SettingsManager.apply_settings())
-	ambient_slider.value_changed.connect(func(v): SettingsManager.ambient_volume = v; SettingsManager.apply_settings())
-	sensitivity_slider.value_changed.connect(func(v): SettingsManager.mouse_sensitivity = v)
+	master_slider.value_changed.connect(func(v): SettingsManager.master_volume = v; SettingsManager.save_settings())
+	music_slider.value_changed.connect(func(v): SettingsManager.music_volume = v; SettingsManager.save_settings())
+	sfx_slider.value_changed.connect(func(v): SettingsManager.sfx_volume = v; SettingsManager.save_settings())
+	ambient_slider.value_changed.connect(func(v): SettingsManager.ambient_volume = v; SettingsManager.save_settings())
+	sensitivity_slider.value_changed.connect(func(v): SettingsManager.mouse_sensitivity = v; SettingsManager.save_settings())
 	language_option.item_selected.connect(_on_language_selected)
 	resolution_option.item_selected.connect(_on_resolution_selected)
 	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
+	reset_button.pressed.connect(_on_reset_pressed)
 	back_button.pressed.connect(_on_back_pressed)
 	visibility_changed.connect(_on_visibility_changed)
 
@@ -57,9 +69,20 @@ func _ready() -> void:
 ## recomputes it just from being toggled visible later. Force a fresh
 ## recompute against the actual current viewport every time this becomes
 ## visible, rather than trusting whatever anchors resolved to earlier.
+##
+## Also re-syncs every control from SettingsManager's current values: this
+## scene is instanced twice (once inside MainMenu, once inside PauseMenu),
+## so a setting changed through the *other* instance (e.g. fullscreen
+## toggled from the main menu, then checked again from the pause menu
+## mid-game) needs to show correctly here too, not whatever this
+## instance's controls happened to show at its own _ready().
 func _on_visibility_changed() -> void:
-	if visible:
-		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if not visible:
+		return
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_load_from_settings()
+	_select_current_locale()
+	_select_current_resolution()
 
 
 func set_available_locales(locales: Array[Array]) -> void:
@@ -117,7 +140,7 @@ func _load_from_settings() -> void:
 
 func _on_language_selected(index: int) -> void:
 	SettingsManager.locale = available_locales[index][0]
-	SettingsManager.apply_settings()
+	SettingsManager.save_settings()
 
 
 func _on_resolution_selected(index: int) -> void:
@@ -128,6 +151,12 @@ func _on_fullscreen_toggled(enabled: bool) -> void:
 	SettingsManager.set_fullscreen(enabled)
 
 
+func _on_reset_pressed() -> void:
+	SettingsManager.reset_to_defaults()
+	_load_from_settings()
+	_select_current_locale()
+	_select_current_resolution()
+
+
 func _on_back_pressed() -> void:
-	SettingsManager.save_settings()
 	closed.emit()

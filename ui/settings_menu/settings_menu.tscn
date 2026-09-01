@@ -31,106 +31,115 @@ custom_minimum_size = Vector2(240, 0)
 horizontal_alignment = 1
 text = "UI_SETTINGS_TITLE"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox"]
+[node name="Tabs" type="TabContainer" parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 130)
 size_flags_vertical = 3
-horizontal_scroll_mode = 0
 
-[node name="Rows" type="VBoxContainer" parent="Panel/VBox/ScrollContainer"]
-custom_minimum_size = Vector2(220, 0)
-size_flags_horizontal = 3
+[node name="Audio" type="VBoxContainer" parent="Panel/VBox/Tabs"]
 
-[node name="MasterRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
+[node name="MasterRow" type="HBoxContainer" parent="Panel/VBox/Tabs/Audio"]
 
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/MasterRow"]
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/Audio/MasterRow"]
 custom_minimum_size = Vector2(90, 0)
 text = "UI_SETTINGS_MASTER_VOLUME"
 
-[node name="Slider" type="HSlider" parent="Panel/VBox/ScrollContainer/Rows/MasterRow"]
+[node name="Slider" type="HSlider" parent="Panel/VBox/Tabs/Audio/MasterRow"]
 custom_minimum_size = Vector2(120, 0)
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 
-[node name="MusicRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
+[node name="MusicRow" type="HBoxContainer" parent="Panel/VBox/Tabs/Audio"]
 
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/MusicRow"]
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/Audio/MusicRow"]
 custom_minimum_size = Vector2(90, 0)
 text = "UI_SETTINGS_MUSIC_VOLUME"
 
-[node name="Slider" type="HSlider" parent="Panel/VBox/ScrollContainer/Rows/MusicRow"]
+[node name="Slider" type="HSlider" parent="Panel/VBox/Tabs/Audio/MusicRow"]
 custom_minimum_size = Vector2(120, 0)
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 
-[node name="SfxRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
+[node name="SfxRow" type="HBoxContainer" parent="Panel/VBox/Tabs/Audio"]
 
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/SfxRow"]
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/Audio/SfxRow"]
 custom_minimum_size = Vector2(90, 0)
 text = "UI_SETTINGS_SFX_VOLUME"
 
-[node name="Slider" type="HSlider" parent="Panel/VBox/ScrollContainer/Rows/SfxRow"]
+[node name="Slider" type="HSlider" parent="Panel/VBox/Tabs/Audio/SfxRow"]
 custom_minimum_size = Vector2(120, 0)
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 
-[node name="AmbientRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
+[node name="AmbientRow" type="HBoxContainer" parent="Panel/VBox/Tabs/Audio"]
 
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/AmbientRow"]
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/Audio/AmbientRow"]
 custom_minimum_size = Vector2(90, 0)
 text = "UI_SETTINGS_AMBIENT_VOLUME"
 
-[node name="Slider" type="HSlider" parent="Panel/VBox/ScrollContainer/Rows/AmbientRow"]
+[node name="Slider" type="HSlider" parent="Panel/VBox/Tabs/Audio/AmbientRow"]
 custom_minimum_size = Vector2(120, 0)
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 
-[node name="SensitivityRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
+[node name="Video" type="VBoxContainer" parent="Panel/VBox/Tabs"]
+visible = false
 
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/SensitivityRow"]
-custom_minimum_size = Vector2(90, 0)
-text = "UI_SETTINGS_MOUSE_SENSITIVITY"
+[node name="ResolutionRow" type="HBoxContainer" parent="Panel/VBox/Tabs/Video"]
 
-[node name="Slider" type="HSlider" parent="Panel/VBox/ScrollContainer/Rows/SensitivityRow"]
-custom_minimum_size = Vector2(120, 0)
-min_value = 0.05
-max_value = 0.5
-step = 0.01
-
-[node name="LanguageRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
-
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/LanguageRow"]
-custom_minimum_size = Vector2(90, 0)
-text = "UI_SETTINGS_LANGUAGE"
-
-[node name="OptionButton" type="OptionButton" parent="Panel/VBox/ScrollContainer/Rows/LanguageRow"]
-custom_minimum_size = Vector2(120, 0)
-
-[node name="ResolutionRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
-
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/ResolutionRow"]
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/Video/ResolutionRow"]
 custom_minimum_size = Vector2(90, 0)
 text = "UI_SETTINGS_RESOLUTION"
 
-[node name="OptionButton" type="OptionButton" parent="Panel/VBox/ScrollContainer/Rows/ResolutionRow"]
+[node name="OptionButton" type="OptionButton" parent="Panel/VBox/Tabs/Video/ResolutionRow"]
 custom_minimum_size = Vector2(120, 0)
 
-[node name="ResolutionForcedLabel" type="Label" parent="Panel/VBox/ScrollContainer/Rows"]
+[node name="ResolutionForcedLabel" type="Label" parent="Panel/VBox/Tabs/Video"]
 visible = false
 custom_minimum_size = Vector2(220, 0)
 autowrap_mode = 2
 text = "UI_SETTINGS_RESOLUTION_FORCED"
 
-[node name="FullscreenRow" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/Rows"]
+[node name="FullscreenRow" type="HBoxContainer" parent="Panel/VBox/Tabs/Video"]
 
-[node name="Label" type="Label" parent="Panel/VBox/ScrollContainer/Rows/FullscreenRow"]
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/Video/FullscreenRow"]
 custom_minimum_size = Vector2(90, 0)
 text = "UI_SETTINGS_FULLSCREEN"
 
-[node name="CheckBox" type="CheckBox" parent="Panel/VBox/ScrollContainer/Rows/FullscreenRow"]
+[node name="CheckBox" type="CheckBox" parent="Panel/VBox/Tabs/Video/FullscreenRow"]
 
-[node name="BackButton" type="Button" parent="Panel/VBox"]
+[node name="General" type="VBoxContainer" parent="Panel/VBox/Tabs"]
+visible = false
+
+[node name="SensitivityRow" type="HBoxContainer" parent="Panel/VBox/Tabs/General"]
+
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/General/SensitivityRow"]
+custom_minimum_size = Vector2(90, 0)
+text = "UI_SETTINGS_MOUSE_SENSITIVITY"
+
+[node name="Slider" type="HSlider" parent="Panel/VBox/Tabs/General/SensitivityRow"]
+custom_minimum_size = Vector2(120, 0)
+min_value = 0.05
+max_value = 0.5
+step = 0.01
+
+[node name="LanguageRow" type="HBoxContainer" parent="Panel/VBox/Tabs/General"]
+
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/General/LanguageRow"]
+custom_minimum_size = Vector2(90, 0)
+text = "UI_SETTINGS_LANGUAGE"
+
+[node name="OptionButton" type="OptionButton" parent="Panel/VBox/Tabs/General/LanguageRow"]
+custom_minimum_size = Vector2(120, 0)
+
+[node name="ButtonRow" type="HBoxContainer" parent="Panel/VBox"]
+alignment = 1
+
+[node name="ResetButton" type="Button" parent="Panel/VBox/ButtonRow"]
+text = "UI_RESET"
+
+[node name="BackButton" type="Button" parent="Panel/VBox/ButtonRow"]
 text = "UI_BACK"

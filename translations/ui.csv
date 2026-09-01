@@ -17,6 +17,10 @@ UI_SETTINGS_LANGUAGE,Language,Lingua
 UI_SETTINGS_RESOLUTION,Resolution,Risoluzione
 UI_SETTINGS_RESOLUTION_FORCED,Resolution is fixed by the current visual style.,La risoluzione è fissata dallo stile visivo attuale.
 UI_SETTINGS_FULLSCREEN,Fullscreen,Schermo Intero
+UI_SETTINGS_TAB_AUDIO,Audio,Audio
+UI_SETTINGS_TAB_VIDEO,Video,Video
+UI_SETTINGS_TAB_GENERAL,General,Generale
+UI_RESET,Reset,Ripristina
 UI_INVENTORY_TITLE,Inventory,Inventario
 UI_DIALOGUE_CONTINUE,Continue,Continua
 UI_INTERACT_DEFAULT,Interact,Interagisci

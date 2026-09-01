@@ -95,11 +95,11 @@ from each other in *when* they take effect, though:
   *smallest* resolution you expect to force. The existing menus
   (`ui/main_menu`, `ui/pause_menu`, `ui/settings_menu`, `ui/inventory_ui`)
   are all sized to fit inside 320×240 with margin to spare;
-  `settings_menu.tscn` additionally wraps its (longest) row list in a
-  `ScrollContainer` so it degrades to scrolling instead of clipping if you
-  force something even smaller. Keep both in mind for any new menu: size it
-  to fit 320×240, and reach for a `ScrollContainer` if the content
-  genuinely can't be trimmed to fit.
+  `settings_menu.tscn` additionally splits its content across
+  Audio/Video/General tabs (a `TabContainer`) rather than one long list, so
+  only one category's rows need to fit at a time. Keep both in mind for any
+  new menu: size it to fit 320×240, and reach for tabs or a
+  `ScrollContainer` if the content genuinely can't be trimmed to fit.
 - **Force Texture Downsample** (`retro_style/force_texture_downsample`,
   bool) + **Max Texture Size** (`retro_style/max_texture_size`, a
   128/256/512 dropdown): when the toggle is on, every

@@ -142,10 +142,14 @@ func apply_settings() -> void:
 ## the window on every call: it used to, and that meant pressing Back (or
 ## changing any unrelated setting) silently reverted a manual window
 ## resize (dragging the border) back to whatever window_resolution was
-## last set to.
+## last set to. Persists immediately, like every other Settings menu
+## control — every change is meant to survive a session regardless of how
+## the player leaves the menu (Back, Quit, closing the window, ...), not
+## only if they happen to press Back first.
 func set_window_resolution(resolution: Vector2i) -> void:
 	window_resolution = resolution
 	_apply_window_size()
+	save_settings()
 
 
 ## The Settings menu's Fullscreen checkbox.
@@ -154,6 +158,23 @@ func set_fullscreen(enabled: bool) -> void:
 	_apply_fullscreen()
 	if not enabled:
 		_apply_window_size()  # restore the known windowed size when leaving fullscreen
+	save_settings()
+
+
+## Resets every persisted setting to its default and saves immediately —
+## the Settings menu's Reset button. Doesn't touch visual_style: that's
+## not persisted here at all (see its doc comment above).
+func reset_to_defaults() -> void:
+	master_volume = 1.0
+	music_volume = 1.0
+	sfx_volume = 1.0
+	ambient_volume = 1.0
+	mouse_sensitivity = DEFAULT_MOUSE_SENSITIVITY
+	locale = DEFAULT_LOCALE
+	window_resolution = DEFAULT_WINDOW_RESOLUTION
+	fullscreen = false
+	_apply_window_size()
+	save_settings()
 
 
 ## Whether the game is *actually* running with a forced internal
