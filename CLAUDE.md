@@ -53,7 +53,7 @@ Registration order matters (see Project Settings > Autoload):
 | Autoload | Responsibility | Key API |
 |---|---|---|
 | `GameManager` | Global game state, control locking, save-independent flags | `register_player`/`get_player`, `set_flag`/`get_flag`, `set_control_enabled`, `state` (`GameState` enum) + `state_changed` signal |
-| `SettingsManager` | Persisted user prefs + visual style | `apply_settings`, `save_settings`/`load_settings` (`user://settings.cfg`), `register_world_environment`, `visual_style` (`VisualStyle` enum, not yet player-facing — see `docs/visual_style.md`), `settings_changed` signal |
+| `SettingsManager` | Persisted user prefs + visual style + resolution | `apply_settings`, `save_settings`/`load_settings` (`user://settings.cfg`), `register_world_environment`, `visual_style` (`VisualStyle` enum, not yet player-facing — see `docs/visual_style.md`), `window_resolution`/`fullscreen` (player-facing, in `ui/settings_menu/`), `is_resolution_forced`, `settings_changed` signal |
 | `AudioManager` | Bus-based sound playback | `play_sfx_2d`/`play_sfx_3d`, `play_music`/`stop_music`, `play_ambient` |
 | `InventoryManager` | Slot-based inventory + equip state | `add_item`/`remove_item`/`has_item`, `equip_slot`/`unequip`, `inventory_changed`/`item_equipped` signals |
 | `DialogueManager` | Custom lightweight dialogue runner | `start_dialogue`, `advance`, `choose`, `end_dialogue`, `line_changed`/`choices_presented`/`dialogue_ended` signals |

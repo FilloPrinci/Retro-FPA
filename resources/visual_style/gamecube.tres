@@ -13,3 +13,7 @@ fog_depth_begin = 20.0
 fog_depth_end = 80.0
 background_color = Color(0.05, 0.05, 0.05, 1)
 adjustment_enabled = true
+force_resolution_enabled = true
+forced_resolution = Vector2i(640, 480)
+force_texture_downsample_enabled = true
+max_texture_size = 512

@@ -15,6 +15,8 @@ line drawn here.
 | Anisotropic filtering | Off | Off | Low |
 | Fog | Off by default | Heavy, close (hides short draw distance, background color matches fog so it blends into the "sky") | Light, far |
 | Color grading | Slightly higher contrast, reduced saturation | Reduced contrast and saturation (hazy) | Neutral |
+| Internal resolution | Forced 320×240 | Forced 320×240 | Forced 640×480 |
+| Max texture size | 128px | 256px | 512px |
 
 These are starting points (`resources/visual_style/ps1.tres`, `n64.tres`,
 `gamecube.tres`) — tune the fields to taste for your game, they aren't
@@ -47,6 +49,46 @@ material in the game use nearest filtering.
   properties — safe to change at any time. `SettingsManager` applies these
   to the persistent shell's `WorldEnvironment` (`ui/main/main.tscn`) the
   same way.
+
+## Resolution and texture size
+
+Two more per-style knobs, both applied by `SettingsManager` the same way as
+`texture_filter_nearest` (a live scene-tree/window pass, not a project
+setting):
+
+- **`force_resolution_enabled` + `forced_resolution`**: when on, the game
+  renders internally at `forced_resolution` (e.g. PS1's 320×240) and
+  stretches that up to fill the window — `Window.content_scale_mode =
+  CONTENT_SCALE_MODE_VIEWPORT`. This is independent of the actual window
+  size or fullscreen state: a 320×240-rendered game can still run in a
+  1920×1080 window or fullscreen, it just looks blocky at any size, which
+  is the point. When off, nothing is forced and the window renders at its
+  native size.
+- **`force_texture_downsample_enabled` + `max_texture_size`** (128/256/512):
+  when on, every `BaseMaterial3D.albedo_texture` wider or taller than this
+  gets shrunk (aspect preserved, nearest-neighbor resize — deliberately
+  blocky, not smoothed, to match the rest of the look) the same way
+  `texture_filter_nearest` gets patched on. Only `albedo_texture`: this
+  project's art direction is single-albedo, no PBR maps (see
+  `docs/blender_asset_guidelines.md`), so that's the only slot that matters.
+  Already-small textures are left alone — this only ever shrinks, so it's
+  a safe no-op on repeated calls (every scene change re-applies it).
+
+## Resolution and fullscreen: the player-facing side
+
+Unlike `visual_style`, **window resolution and fullscreen are already
+exposed in `ui/settings_menu/`** — `SettingsManager.window_resolution`
+(picked from `RESOLUTION_CHOICES`, a curated list) and
+`SettingsManager.fullscreen`, both persisted like every other setting.
+
+The Resolution dropdown only makes sense when the active style *isn't*
+forcing its own internal resolution — picking "1920x1080" would do nothing
+visible while PS1's 320×240 forcing is active, since the forced size wins
+(`Window.content_scale_size` always takes priority over `Window.size` for
+what actually gets rendered). So `settings_menu.gd` checks
+`SettingsManager.is_resolution_forced()` and swaps the dropdown for an
+explanatory label in that case. Fullscreen stays available either way — it
+toggles the OS window state, orthogonal to the internal render resolution.
 
 ## Choosing the style for a new game
 

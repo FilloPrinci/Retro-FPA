@@ -28,6 +28,17 @@ const VISUAL_STYLE_PROFILES := {
 	VisualStyle.GAMECUBE: preload("res://resources/visual_style/gamecube.tres"),
 }
 
+## Window size when the current style doesn't force an internal render
+## resolution — see VisualStyleProfile.force_resolution_enabled and
+## docs/visual_style.md. A curated list rather than free-form input, shown
+## as-is in the Settings menu.
+const RESOLUTION_CHOICES := [
+	Vector2i(1280, 720),
+	Vector2i(1600, 900),
+	Vector2i(1920, 1080),
+]
+const DEFAULT_WINDOW_RESOLUTION := Vector2i(1280, 720)
+
 var master_volume: float = 1.0
 var music_volume: float = 1.0
 var sfx_volume: float = 1.0
@@ -35,6 +46,8 @@ var ambient_volume: float = 1.0
 var mouse_sensitivity: float = DEFAULT_MOUSE_SENSITIVITY
 var locale: String = DEFAULT_LOCALE
 var visual_style: VisualStyle = _get_project_default_visual_style()
+var window_resolution: Vector2i = DEFAULT_WINDOW_RESOLUTION
+var fullscreen: bool = false
 
 ## Set by main.gd once the persistent shell's WorldEnvironment exists —
 ## autoloads are ready before the main scene, so apply_settings() may run
@@ -49,8 +62,8 @@ func _ready() -> void:
 	# CanvasItem/UI textures do. So the nearest-vs-linear half of the style
 	# has to be patched onto materials directly whenever new 3D content
 	# shows up, not just set once as a project setting.
-	SceneManager.scene_change_finished.connect(func(_path): _apply_texture_filter_to_active_content())
-	GameManager.player_registered.connect(func(_player): _apply_texture_filter_to_active_content())
+	SceneManager.scene_change_finished.connect(func(_path): _apply_material_patches())
+	GameManager.player_registered.connect(func(_player): _apply_material_patches())
 
 
 func load_settings() -> void:
@@ -63,6 +76,8 @@ func load_settings() -> void:
 		mouse_sensitivity = config.get_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
 		locale = config.get_value(SECTION, "locale", locale)
 		visual_style = config.get_value(SECTION, "visual_style", visual_style) as VisualStyle
+		window_resolution = config.get_value(SECTION, "window_resolution", window_resolution)
+		fullscreen = config.get_value(SECTION, "fullscreen", fullscreen)
 	apply_settings()
 
 
@@ -83,6 +98,8 @@ func save_settings() -> void:
 	config.set_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
 	config.set_value(SECTION, "locale", locale)
 	config.set_value(SECTION, "visual_style", visual_style)
+	config.set_value(SECTION, "window_resolution", window_resolution)
+	config.set_value(SECTION, "fullscreen", fullscreen)
 	config.save(SETTINGS_PATH)
 	apply_settings()
 
@@ -95,7 +112,16 @@ func apply_settings() -> void:
 	if TranslationServer.get_locale() != locale:
 		TranslationServer.set_locale(locale)
 	_apply_visual_style()
+	_apply_resolution()
 	settings_changed.emit()
+
+
+## Whether the active style forces its own internal render resolution —
+## the Settings menu hides its Resolution control in that case, since
+## window_resolution wouldn't do anything visible.
+func is_resolution_forced() -> bool:
+	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
+	return profile != null and profile.force_resolution_enabled
 
 
 ## Called by main.gd once the persistent shell's WorldEnvironment node
@@ -114,12 +140,34 @@ func _apply_bus_volume(bus_name: String, linear_volume: float) -> void:
 	AudioServer.set_bus_volume_db(bus_index, linear_to_db(clampf(linear_volume, 0.0, 1.0)))
 
 
+## Applies fullscreen/windowed mode, the window size (when the style isn't
+## forcing its own internal resolution), and the forced-resolution
+## pixelation itself (Window.content_scale_size stretched up to fill
+## whatever the window ends up being — the classic blocky retro look,
+## independent of the actual window/monitor size).
+func _apply_resolution() -> void:
+	var window := get_window()
+	if window == null:
+		return  # No window in this context (e.g. a headless run).
+
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+	if not fullscreen:
+		window.size = window_resolution
+
+	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
+	if profile != null and profile.force_resolution_enabled:
+		window.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
+		window.content_scale_size = profile.forced_resolution
+	else:
+		window.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
+
+
 ## Applies the runtime-safe half of the chosen VisualStyleProfile (fog,
 ## ambient light, background, color grading) to the registered
-## WorldEnvironment, and (re-)patches the texture-filter half onto whatever
-## 3D content currently exists.
+## WorldEnvironment, and (re-)patches the texture filter/downsample half
+## onto whatever 3D content currently exists.
 func _apply_visual_style() -> void:
-	_apply_texture_filter_to_active_content()
+	_apply_material_patches()
 
 	if _world_environment == null:
 		return
@@ -154,14 +202,15 @@ func _apply_visual_style() -> void:
 	env.adjustment_saturation = profile.adjustment_saturation
 
 
-## Walks the live scene tree and sets texture_filter on every BaseMaterial3D
-## it finds, matching the chosen style. Mutates the shared Material
+## Walks the live scene tree and, on every BaseMaterial3D it finds: sets
+## texture_filter, and (if the style forces it) downsamples the albedo
+## texture to max_texture_size. Mutates the shared Material/Texture
 ## Resources in place (not per-instance overrides), so a material used by
 ## many MeshInstance3Ds only needs to be touched once and stays consistent —
 ## this only affects the running session, never anything on disk.
 ## ShaderMaterials are left alone; they don't expose texture_filter this way
 ## and are out of scope (see docs/visual_style.md).
-func _apply_texture_filter_to_active_content() -> void:
+func _apply_material_patches() -> void:
 	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
 	if profile == null or not is_inside_tree():
 		return
@@ -174,15 +223,42 @@ func _apply_texture_filter_to_active_content() -> void:
 		filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_NEAREST
 	else:
 		filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC if use_aniso else BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	_patch_texture_filter_recursive(get_tree().root, filter)
+	var max_texture_size := profile.max_texture_size if profile.force_texture_downsample_enabled else -1
+	_patch_material_recursive(get_tree().root, filter, max_texture_size)
 
 
-func _patch_texture_filter_recursive(node: Node, filter: BaseMaterial3D.TextureFilter) -> void:
+func _patch_material_recursive(node: Node, filter: BaseMaterial3D.TextureFilter, max_texture_size: int) -> void:
 	var mesh_instance := node as MeshInstance3D
 	if mesh_instance and mesh_instance.mesh:
 		for i in mesh_instance.mesh.get_surface_count():
-			var mat := mesh_instance.get_active_material(i)
-			if mat is BaseMaterial3D:
-				(mat as BaseMaterial3D).texture_filter = filter
+			var mat := mesh_instance.get_active_material(i) as BaseMaterial3D
+			if mat:
+				mat.texture_filter = filter
+				if max_texture_size > 0:
+					_downsample_if_needed(mat, max_texture_size)
 	for child in node.get_children():
-		_patch_texture_filter_recursive(child, filter)
+		_patch_material_recursive(child, filter, max_texture_size)
+
+
+## Shrinks mat.albedo_texture in place if either dimension exceeds
+## max_size, preserving aspect ratio. Only albedo_texture — this project's
+## art direction is single-albedo-texture, no PBR maps (see
+## docs/blender_asset_guidelines.md), so that's the only slot that matters
+## here. Already-small textures are left untouched (this only ever
+## shrinks), so repeated calls across scene changes are cheap no-ops.
+func _downsample_if_needed(mat: BaseMaterial3D, max_size: int) -> void:
+	var texture := mat.albedo_texture
+	if texture == null:
+		return
+	var size := texture.get_size()
+	if size.x <= max_size and size.y <= max_size:
+		return
+
+	var image := texture.get_image()
+	if image == null:
+		return  # e.g. a texture format that can't be read back on this backend.
+
+	var scale := float(max_size) / maxf(size.x, size.y)
+	var new_size := Vector2i(maxi(1, roundi(size.x * scale)), maxi(1, roundi(size.y * scale)))
+	image.resize(new_size.x, new_size.y, Image.INTERPOLATE_NEAREST)
+	mat.albedo_texture = ImageTexture.create_from_image(image)

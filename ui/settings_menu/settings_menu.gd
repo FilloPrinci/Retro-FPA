@@ -1,7 +1,8 @@
 extends Control
-## Shared settings screen (volumes, mouse sensitivity, language). Instanced
-## from both MainMenu and PauseMenu — same scene, two entry points, no
-## generic navigation stack needed for a screen this shallow.
+## Shared settings screen (volumes, mouse sensitivity, language, window
+## resolution/fullscreen). Instanced from both MainMenu and PauseMenu — same
+## scene, two entry points, no generic navigation stack needed for a screen
+## this shallow.
 
 signal closed
 
@@ -11,6 +12,10 @@ signal closed
 @onready var ambient_slider: HSlider = $Panel/VBox/AmbientRow/Slider
 @onready var sensitivity_slider: HSlider = $Panel/VBox/SensitivityRow/Slider
 @onready var language_option: OptionButton = $Panel/VBox/LanguageRow/OptionButton
+@onready var resolution_row: HBoxContainer = $Panel/VBox/ResolutionRow
+@onready var resolution_option: OptionButton = $Panel/VBox/ResolutionRow/OptionButton
+@onready var resolution_forced_label: Label = $Panel/VBox/ResolutionForcedLabel
+@onready var fullscreen_check: CheckBox = $Panel/VBox/FullscreenRow/CheckBox
 @onready var back_button: Button = $Panel/VBox/BackButton
 
 ## (locale_code, display_name) pairs. A specific game can call
@@ -24,6 +29,7 @@ var available_locales: Array[Array] = [
 
 func _ready() -> void:
 	_populate_language_options()
+	_populate_resolution_options()
 	_load_from_settings()
 
 	master_slider.value_changed.connect(func(v): SettingsManager.master_volume = v; SettingsManager.apply_settings())
@@ -32,6 +38,8 @@ func _ready() -> void:
 	ambient_slider.value_changed.connect(func(v): SettingsManager.ambient_volume = v; SettingsManager.apply_settings())
 	sensitivity_slider.value_changed.connect(func(v): SettingsManager.mouse_sensitivity = v)
 	language_option.item_selected.connect(_on_language_selected)
+	resolution_option.item_selected.connect(_on_resolution_selected)
+	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
 	back_button.pressed.connect(_on_back_pressed)
 
 
@@ -55,16 +63,51 @@ func _select_current_locale() -> void:
 			return
 
 
+func _populate_resolution_options() -> void:
+	resolution_option.clear()
+	for resolution in SettingsManager.RESOLUTION_CHOICES:
+		resolution_option.add_item("%dx%d" % [resolution.x, resolution.y])
+	_select_current_resolution()
+
+
+func _select_current_resolution() -> void:
+	var choices := SettingsManager.RESOLUTION_CHOICES
+	for i in choices.size():
+		if choices[i] == SettingsManager.window_resolution:
+			resolution_option.select(i)
+			return
+
+
 func _load_from_settings() -> void:
 	master_slider.value = SettingsManager.master_volume
 	music_slider.value = SettingsManager.music_volume
 	sfx_slider.value = SettingsManager.sfx_volume
 	ambient_slider.value = SettingsManager.ambient_volume
 	sensitivity_slider.value = SettingsManager.mouse_sensitivity
+	fullscreen_check.button_pressed = SettingsManager.fullscreen
+
+	# The active visual style may force its own internal render resolution
+	# (see VisualStyleProfile.force_resolution_enabled) — the player's
+	# window-resolution choice wouldn't visibly do anything in that case,
+	# so swap the dropdown for an explanatory label instead of showing a
+	# control that silently does nothing.
+	var forced := SettingsManager.is_resolution_forced()
+	resolution_row.visible = not forced
+	resolution_forced_label.visible = forced
 
 
 func _on_language_selected(index: int) -> void:
 	SettingsManager.locale = available_locales[index][0]
+	SettingsManager.apply_settings()
+
+
+func _on_resolution_selected(index: int) -> void:
+	SettingsManager.window_resolution = SettingsManager.RESOLUTION_CHOICES[index]
+	SettingsManager.apply_settings()
+
+
+func _on_fullscreen_toggled(enabled: bool) -> void:
+	SettingsManager.fullscreen = enabled
 	SettingsManager.apply_settings()
 
 

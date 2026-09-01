@@ -43,3 +43,20 @@ extends Resource
 @export var adjustment_brightness: float = 1.0
 @export var adjustment_contrast: float = 1.0
 @export var adjustment_saturation: float = 1.0
+
+@export_group("Resolution")
+## Forces the game to render internally at forced_resolution and stretch
+## that up to fill the window (the classic blocky low-res console look),
+## regardless of the player's own Settings > Resolution choice. When off,
+## SettingsManager.window_resolution applies instead — see
+## docs/visual_style.md.
+@export var force_resolution_enabled: bool = false
+@export var forced_resolution: Vector2i = Vector2i(320, 240)
+
+@export_group("Texture size")
+## Forces every material's albedo texture down to at most this size
+## (longest edge) at runtime — see
+## SettingsManager._patch_material_recursive(). Textures already at or
+## below this size are left untouched; this only ever shrinks.
+@export var force_texture_downsample_enabled: bool = false
+@export_enum("128:128", "256:256", "512:512") var max_texture_size: int = 256

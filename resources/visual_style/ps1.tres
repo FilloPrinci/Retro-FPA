@@ -10,3 +10,6 @@ fog_depth_end = 50.0
 adjustment_enabled = true
 adjustment_contrast = 1.05
 adjustment_saturation = 0.9
+force_resolution_enabled = true
+force_texture_downsample_enabled = true
+max_texture_size = 128
