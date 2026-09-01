@@ -47,8 +47,10 @@ const DEFAULT_WINDOW_RESOLUTION := Vector2i(1280, 720)
 ## VisualStyleProfile fields. Read directly via ProjectSettings.get_setting(),
 ## not cached as vars, since they're a fixed dev choice rather than
 ## something that changes at runtime. See docs/visual_style.md.
+## Only whether it's forced is read here — the resolution value itself
+## (retro_style/forced_resolution) is only ever read by
+## tools/setup_project.gd now, see is_resolution_forced()'s doc comment.
 const FORCE_RESOLUTION_SETTING := "retro_style/force_resolution"
-const FORCED_RESOLUTION_SETTING := "retro_style/forced_resolution"
 const FORCE_TEXTURE_DOWNSAMPLE_SETTING := "retro_style/force_texture_downsample"
 const MAX_TEXTURE_SIZE_SETTING := "retro_style/max_texture_size"
 ## The fog override settings (retro_style/override_fog and its 5 fog_*
@@ -137,7 +139,10 @@ func apply_settings() -> void:
 
 ## Whether Project Settings > Retro Style > Force Resolution is on — the
 ## Settings menu hides its Resolution control in that case, since
-## window_resolution wouldn't do anything visible.
+## window_resolution wouldn't do anything visible. The actual pixelation
+## this implies is baked into project.godot by
+## tools/setup_project.gd::_setup_window_stretch(), not applied here — see
+## its doc comment on FORCE_RESOLUTION_SETTING for why.
 func is_resolution_forced() -> bool:
 	return ProjectSettings.get_setting(FORCE_RESOLUTION_SETTING, false)
 
@@ -158,11 +163,14 @@ func _apply_bus_volume(bus_name: String, linear_volume: float) -> void:
 	AudioServer.set_bus_volume_db(bus_index, linear_to_db(clampf(linear_volume, 0.0, 1.0)))
 
 
-## Applies fullscreen/windowed mode, the window size (when the style isn't
-## forcing its own internal resolution), and the forced-resolution
-## pixelation itself (Window.content_scale_size stretched up to fill
-## whatever the window ends up being — the classic blocky retro look,
-## independent of the actual window/monitor size).
+## Applies fullscreen/windowed mode and the window size (when the style
+## isn't forcing its own internal resolution). The forced-resolution
+## pixelation itself is NOT applied here — see FORCE_RESOLUTION_SETTING's
+## doc comment above and tools/setup_project.gd::_setup_window_stretch():
+## changing Window.content_scale_mode/content_scale_size at runtime, after
+## the window and its CanvasLayers already rendered a frame, produced a
+## wrongly-positioned UI in an exported build, so that half moved to
+## setup-time instead.
 func _apply_resolution() -> void:
 	var window := get_window()
 	if window == null:
@@ -171,18 +179,6 @@ func _apply_resolution() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 	if not fullscreen:
 		window.size = window_resolution
-
-	if is_resolution_forced():
-		window.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT
-		window.content_scale_size = ProjectSettings.get_setting(FORCED_RESOLUTION_SETTING, Vector2i(320, 240))
-		# Default is ASPECT_IGNORE, which stretches non-uniformly (distorts)
-		# whenever the window's aspect ratio doesn't match the forced
-		# resolution's. KEEP preserves the forced resolution's aspect ratio
-		# and letterboxes/pillarboxes instead — correct for a retro pixelated
-		# look, where distortion would look like a bug, not an aesthetic.
-		window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
-	else:
-		window.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 
 
 ## Applies the runtime-safe half of the chosen VisualStyleProfile (fog,

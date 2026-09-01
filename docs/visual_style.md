@@ -54,41 +54,52 @@ material in the game use nearest filtering.
 
 ## Resolution and texture size
 
-Unlike everything above, these two are **not** `VisualStyleProfile` fields —
-they aren't really part of a specific console's "look", they're a blanket
-dev choice on top of whichever style is active, so they're their own
-Project Settings (Retro Style category, added by the same
-`addons/retro_visual_style` plugin as Visual Style itself), applied by
-`SettingsManager` the same way `texture_filter_nearest` is (a live
-scene-tree/window pass, read directly with `ProjectSettings.get_setting()`
-rather than cached — they're a fixed dev choice, not something that
-changes at runtime):
+Unlike the fields in the table above, these are **not** `VisualStyleProfile`
+fields — they aren't really part of a specific console's "look", they're a
+blanket dev choice on top of whichever style is active, so they're their
+own Project Settings (Retro Style category, added by the same
+`addons/retro_visual_style` plugin as Visual Style itself). They differ
+from each other in *when* they take effect, though:
 
 - **Force Resolution** (`retro_style/force_resolution`, bool) +
   **Forced Resolution** (`retro_style/forced_resolution`, e.g. `320x240`):
-  when the toggle is on, the game renders internally at that resolution and
-  stretches it up to fill the window —
-  `Window.content_scale_mode = CONTENT_SCALE_MODE_VIEWPORT`. This is
-  independent of the actual window size or fullscreen state: a
-  320×240-rendered game can still run in a 1920×1080 window or fullscreen,
-  it just looks blocky at any size, which is the point. Off by default —
-  nothing is forced and the window renders at its native size.
+  baked into `project.godot` by
+  `tools/setup_project.gd::_setup_window_stretch()` — as
+  `display/window/stretch/mode = "viewport"`,
+  `display/window/size/viewport_width`/`viewport_height` set to the forced
+  resolution, and `window_width_override`/`window_height_override` set to
+  a normal starting window size — **not** applied live by
+  `SettingsManager`. It was, originally, via
+  `Window.content_scale_mode`/`content_scale_size` at runtime; that
+  produced a *wrongly-positioned* UI in an actual exported build (menus
+  rendering shifted into a corner, not just wrongly scaled) even though the
+  underlying anchor math checked out fine in isolation — changing a
+  Window's content-scale properties at runtime, after it and its
+  `CanvasLayer`s already rendered a frame, isn't reliable. Baking the
+  equivalent `display/window/*` project settings before the window is ever
+  created avoids that entirely — same reasoning, and the same fix, as the
+  texture-filter fields already being baked this way. **Re-run
+  `tools/setup_project.gd` after changing either of these**, same as the
+  texture-filter fields — this is the one Retro Style setting pair that
+  needs it (Visual Style's own texture-filter half does too; everything
+  else applies live).
 
-  **This affects the UI too, not just the 3D scene** — `content_scale_size`
-  is a Window-level setting, so every `CanvasLayer`/`Control` (HUD, menus,
-  dialogue box) gets laid out and rendered within that same low-res canvas.
-  There's no separate "crisp UI over blocky 3D" split here (that would need
-  routing the 3D scene through its own `SubViewport`, which this template
-  doesn't do — a bigger change than seemed worth it for the default
-  320×240/640×480 profiles). Practically: every menu panel's fixed pixel
-  size needs to comfortably fit within the *smallest* resolution you expect
-  to force. The existing menus (`ui/main_menu`, `ui/pause_menu`,
-  `ui/settings_menu`, `ui/inventory_ui`) are all sized to fit inside
-  320×240 with margin to spare; `settings_menu.tscn` additionally wraps its
-  (longest) row list in a `ScrollContainer` so it degrades to scrolling
-  instead of clipping if you force something even smaller. Keep both in
-  mind for any new menu: size it to fit 320×240, and reach for a
-  `ScrollContainer` if the content genuinely can't be trimmed to fit.
+  **This affects the UI too, not just the 3D scene** — the low internal
+  render resolution applies to everything drawn into the window, so every
+  `CanvasLayer`/`Control` (HUD, menus, dialogue box) gets laid out within
+  that same low-res canvas. There's no separate "crisp UI over blocky 3D"
+  split here (that would need routing the 3D scene through its own
+  `SubViewport`, which this template doesn't do — a bigger change than
+  seemed worth it for the default 320×240/640×480 profiles). Practically:
+  every menu panel's fixed pixel size needs to comfortably fit within the
+  *smallest* resolution you expect to force. The existing menus
+  (`ui/main_menu`, `ui/pause_menu`, `ui/settings_menu`, `ui/inventory_ui`)
+  are all sized to fit inside 320×240 with margin to spare;
+  `settings_menu.tscn` additionally wraps its (longest) row list in a
+  `ScrollContainer` so it degrades to scrolling instead of clipping if you
+  force something even smaller. Keep both in mind for any new menu: size it
+  to fit 320×240, and reach for a `ScrollContainer` if the content
+  genuinely can't be trimmed to fit.
 - **Force Texture Downsample** (`retro_style/force_texture_downsample`,
   bool) + **Max Texture Size** (`retro_style/max_texture_size`, a
   128/256/512 dropdown): when the toggle is on, every
@@ -155,12 +166,17 @@ No script editing needed for the common case:
 `retro_style/visual_style` — there's one value to change, not two
 constants to keep in sync.
 
-Force Resolution/Forced Resolution/Force Texture Downsample/Max Texture
-Size/Override Fog (and its 5 fog fields) all sit right next to Visual
-Style in the same Project Settings category and take effect immediately
-at Play — no `setup_project.gd` re-run needed for any of them, since
-`SettingsManager` reads them live rather than baking anything into
-`project.godot`.
+Force Texture Downsample/Max Texture Size/Override Fog (and its 5 fog
+fields) sit right next to Visual Style in the same Project Settings
+category and take effect immediately at Play — no `setup_project.gd`
+re-run needed for those, since `SettingsManager` reads them live rather
+than baking anything into `project.godot`.
+
+Force Resolution/Forced Resolution are the exception: like the
+texture-filter fields, they only take effect after `tools/setup_project.gd`
+bakes them into `project.godot` (see
+[Resolution and texture size](#resolution-and-texture-size) above for
+why) — re-run it after changing either one.
 
 ## Not (yet) a player-facing setting
 

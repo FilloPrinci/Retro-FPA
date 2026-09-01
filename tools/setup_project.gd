@@ -1,10 +1,10 @@
 extends SceneTree
 ## One-off bootstrap script for the Retro FPA template.
 ##
-## Configures the Input Map, Audio Bus Layout, visual style defaults and
-## translation registration using the engine's own APIs instead of
-## hand-written project.godot / .tres text, so the generated data is
-## guaranteed to be in a format the editor understands.
+## Configures the Input Map, Audio Bus Layout, visual style defaults,
+## window/stretch defaults and translation registration using the engine's
+## own APIs instead of hand-written project.godot / .tres text, so the
+## generated data is guaranteed to be in a format the editor understands.
 ##
 ## Usage (run once from the project root, or again any time these lists change):
 ##   godot --headless -s res://tools/setup_project.gd
@@ -27,6 +27,25 @@ const VISUAL_STYLE_PROFILE_PATHS := [
 	"res://resources/visual_style/n64.tres",
 	"res://resources/visual_style/gamecube.tres",
 ]
+
+## Force Resolution/Forced Resolution (Project Settings > Retro Style) are
+## baked here too, not applied live by SettingsManager — changing
+## Window.content_scale_mode/content_scale_size at runtime, after the
+## window and its CanvasLayers already rendered a frame, was found to
+## produce a wrongly-positioned (not just wrongly-scaled) UI in an actual
+## exported build: the classic "small panel stuck in a corner" symptom,
+## even though the same anchor math checked out fine in isolation. Baking
+## display/window/stretch/* into project.godot before the window is ever
+## created avoids that class of problem entirely — same reasoning as the
+## texture-filter fields above. Re-run this script after changing Force
+## Resolution/Forced Resolution.
+const FORCE_RESOLUTION_SETTING := "retro_style/force_resolution"
+const FORCED_RESOLUTION_SETTING := "retro_style/forced_resolution"
+## Real starting window size when Force Resolution is on — otherwise the
+## window would start as a literal 320x240 (or whatever's forced) box
+## before SettingsManager resizes it on the first frame. Keep in sync with
+## SettingsManager.DEFAULT_WINDOW_RESOLUTION.
+const STARTUP_WINDOW_SIZE := Vector2i(1280, 720)
 
 # action_name -> list of physical keycodes bound to it.
 const KEY_ACTIONS := {
@@ -62,6 +81,7 @@ func _initialize() -> void:
 	_setup_input_map()
 	_setup_audio_buses()
 	_setup_rendering_defaults()
+	_setup_window_stretch()
 	_setup_translations()
 
 	ProjectSettings.save()
@@ -125,6 +145,26 @@ func _setup_rendering_defaults() -> void:
 	ProjectSettings.set_setting("rendering/textures/default_filters/use_nearest_mipmap_filter", profile.texture_filter_nearest)
 	ProjectSettings.set_setting("rendering/textures/default_filters/anisotropic_filtering_level", profile.anisotropic_filtering_level)
 	ProjectSettings.set_setting("rendering/textures/default_filters/texture_mipmap_bias", profile.mipmap_bias)
+
+
+## Bakes Force Resolution into project.godot's display/window/stretch/*
+## settings — see the doc comment on FORCE_RESOLUTION_SETTING above.
+func _setup_window_stretch() -> void:
+	var force_resolution: bool = ProjectSettings.get_setting(FORCE_RESOLUTION_SETTING, false)
+	if force_resolution:
+		var forced: Vector2i = ProjectSettings.get_setting(FORCED_RESOLUTION_SETTING, Vector2i(320, 240))
+		ProjectSettings.set_setting("display/window/size/viewport_width", forced.x)
+		ProjectSettings.set_setting("display/window/size/viewport_height", forced.y)
+		ProjectSettings.set_setting("display/window/size/window_width_override", STARTUP_WINDOW_SIZE.x)
+		ProjectSettings.set_setting("display/window/size/window_height_override", STARTUP_WINDOW_SIZE.y)
+		ProjectSettings.set_setting("display/window/stretch/mode", "viewport")
+		ProjectSettings.set_setting("display/window/stretch/aspect", "keep")
+	else:
+		ProjectSettings.set_setting("display/window/size/viewport_width", STARTUP_WINDOW_SIZE.x)
+		ProjectSettings.set_setting("display/window/size/viewport_height", STARTUP_WINDOW_SIZE.y)
+		ProjectSettings.set_setting("display/window/size/window_width_override", 0)
+		ProjectSettings.set_setting("display/window/size/window_height_override", 0)
+		ProjectSettings.set_setting("display/window/stretch/mode", "disabled")
 
 
 ## Registers every generated translations/*.translation resource with

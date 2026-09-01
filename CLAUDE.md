@@ -113,11 +113,12 @@ project to duplicate.
 `tools/` holds headless maintenance scripts, not gameplay code:
 
 - `tools/setup_project.gd` — (re)generates the Input Map, Audio Bus Layout,
-  visual style texture-filter defaults, and the registered translations
-  list from code (`godot --headless -s res://tools/setup_project.gd`).
-  Re-run it after changing the action/bus lists at the top of the file, the
-  Visual Style project setting (see `docs/visual_style.md`), or adding a
-  new `translations/*.csv` file.
+  visual style texture-filter/window-stretch defaults, and the registered
+  translations list from code (`godot --headless -s
+  res://tools/setup_project.gd`). Re-run it after changing the action/bus
+  lists at the top of the file, the Visual Style or Force
+  Resolution/Forced Resolution project settings (see
+  `docs/visual_style.md`), or adding a new `translations/*.csv` file.
 - `tools/smoke_test.gd` — boots the persistent Main shell, starts a new game
   into the demo level, and checks the player/level/inventory came up clean
   (`godot --headless -s res://tools/smoke_test.gd`). Useful after touching
