@@ -101,6 +101,18 @@ changes at runtime):
   Already-small textures are left alone — this only ever shrinks, so it's a
   safe no-op on repeated calls (every scene change re-applies it). Off by
   default.
+- **Override Fog** (`retro_style/override_fog`, bool) + **Fog Enabled**
+  (`retro_style/fog_enabled`, bool) + **Fog Color**
+  (`retro_style/fog_color`) + **Fog Density**
+  (`retro_style/fog_density`, range 0–0.2) + **Fog Depth Begin/End**
+  (`retro_style/fog_depth_begin`/`fog_depth_end`, range in meters): when
+  Override Fog is on, these five completely replace the active
+  `VisualStyleProfile`'s `fog_*` fields — including forcing fog off on a
+  style that normally has it on (N64), or on for one that normally doesn't
+  (PS1). Applied in `SettingsManager._apply_visual_style()` right where the
+  profile's own fog fields would otherwise be read, so it's a full swap,
+  not a blend. Off by default — each style's own fog applies as documented
+  in the table above.
 
 ## Resolution and fullscreen: the player-facing side
 
@@ -144,10 +156,11 @@ No script editing needed for the common case:
 constants to keep in sync.
 
 Force Resolution/Forced Resolution/Force Texture Downsample/Max Texture
-Size sit right next to Visual Style in the same Project Settings category
-and take effect immediately at Play — no `setup_project.gd` re-run needed
-for those two, since `SettingsManager` reads them live rather than baking
-anything into `project.godot`.
+Size/Override Fog (and its 5 fog fields) all sit right next to Visual
+Style in the same Project Settings category and take effect immediately
+at Play — no `setup_project.gd` re-run needed for any of them, since
+`SettingsManager` reads them live rather than baking anything into
+`project.godot`.
 
 ## Not (yet) a player-facing setting
 
