@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=5 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/textures/icon_knife.png" id="1"]
 [ext_resource type="Script" path="res://core/inventory/item_data.gd" id="2"]
 [ext_resource type="Resource" path="res://resources/items/behaviors/melee_knife_behavior.tres" id="3"]
+[ext_resource type="PackedScene" path="res://resources/items/view_models/knife_view.tscn" id="4"]
 
 [resource]
 script = ExtResource("2")
@@ -10,6 +11,7 @@ id = "kitchen_knife"
 display_name_key = "ITEM_KITCHEN_KNIFE_NAME"
 description_key = "ITEM_KITCHEN_KNIFE_DESC"
 icon = ExtResource("1")
+view_model = ExtResource("4")
 item_type = 1
 stackable = false
 max_stack = 1

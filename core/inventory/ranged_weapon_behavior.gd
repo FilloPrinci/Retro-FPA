@@ -17,3 +17,7 @@ func on_primary_use(player: Node) -> void:
 		return
 	if _try_attack(player):
 		InventoryManager.remove_item(ammo_item.id, ammo_per_shot)
+
+
+func get_use_animation() -> String:
+	return "ranged_recoil"

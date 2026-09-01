@@ -24,3 +24,11 @@ func on_primary_use(_player: Node) -> void:
 ## Called on the "secondary_action" input while this item is equipped.
 func on_secondary_use(_player: Node) -> void:
 	pass
+
+
+## Which procedural view-model animation EquippedItemView should play when
+## this item is used (see EquippedItemView._play_use_animation for the
+## actual motions). Override in a subclass to change the kind — "shake" is
+## the sensible default for a plain equippable with no specific verb.
+func get_use_animation() -> String:
+	return "shake"

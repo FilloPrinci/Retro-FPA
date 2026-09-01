@@ -6,3 +6,7 @@ extends WeaponBehavior
 
 func on_primary_use(player: Node) -> void:
 	_try_attack(player)
+
+
+func get_use_animation() -> String:
+	return "melee_attack"

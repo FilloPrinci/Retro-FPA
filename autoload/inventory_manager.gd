@@ -93,13 +93,17 @@ func remove_item(item_id: String, quantity: int = 1) -> bool:
 
 
 func has_item(item_id: String, quantity: int = 1) -> bool:
+	return get_item_count(item_id) >= quantity
+
+
+## Total quantity held across every slot (a stackable item can be split
+## across more than one slot once max_stack is reached).
+func get_item_count(item_id: String) -> int:
 	var total := 0
 	for slot in _slots:
 		if not slot.is_empty() and slot.item.id == item_id:
 			total += slot.quantity
-			if total >= quantity:
-				return true
-	return false
+	return total
 
 
 func equip_slot(index: int) -> void:
