@@ -132,14 +132,24 @@ exposed in `ui/settings_menu/`** — `SettingsManager.window_resolution`
 (picked from `RESOLUTION_CHOICES`, a curated list) and
 `SettingsManager.fullscreen`, both persisted like every other setting.
 
-The Resolution dropdown only makes sense when the active style *isn't*
+The Resolution dropdown only makes sense when the game isn't already
 forcing its own internal resolution — picking "1920x1080" would do nothing
 visible while PS1's 320×240 forcing is active, since the forced size wins
-(`Window.content_scale_size` always takes priority over `Window.size` for
-what actually gets rendered). So `settings_menu.gd` checks
+over `Window.size`. So `settings_menu.gd` checks
 `SettingsManager.is_resolution_forced()` and swaps the dropdown for an
 explanatory label in that case. Fullscreen stays available either way — it
 toggles the OS window state, orthogonal to the internal render resolution.
+
+`is_resolution_forced()` deliberately checks the *baked*
+`display/window/stretch/mode` setting, not the `retro_style/force_resolution`
+Project Setting directly — the Project Setting is only ever an intent,
+`tools/setup_project.gd` has to be re-run for it to actually take effect
+(see [Resolution and texture size](#resolution-and-texture-size) above), so
+checking it directly could tell the player "resolution is fixed" while the
+game is, in reality, still running unforced because the bake is stale.
+Checking the baked setting instead means the Settings menu can't lie about
+this, whatever state the toggle happens to be in — it costs you nothing to
+verify: re-run the script, and the label starts telling the truth again.
 
 ## Choosing the style for a new game
 

@@ -47,10 +47,9 @@ const DEFAULT_WINDOW_RESOLUTION := Vector2i(1280, 720)
 ## VisualStyleProfile fields. Read directly via ProjectSettings.get_setting(),
 ## not cached as vars, since they're a fixed dev choice rather than
 ## something that changes at runtime. See docs/visual_style.md.
-## Only whether it's forced is read here — the resolution value itself
-## (retro_style/forced_resolution) is only ever read by
-## tools/setup_project.gd now, see is_resolution_forced()'s doc comment.
-const FORCE_RESOLUTION_SETTING := "retro_style/force_resolution"
+## Neither retro_style/force_resolution nor retro_style/forced_resolution
+## is read here at all — only tools/setup_project.gd reads those two; see
+## is_resolution_forced()'s doc comment for why.
 const FORCE_TEXTURE_DOWNSAMPLE_SETTING := "retro_style/force_texture_downsample"
 const MAX_TEXTURE_SIZE_SETTING := "retro_style/max_texture_size"
 ## The fog override settings (retro_style/override_fog and its 5 fog_*
@@ -157,14 +156,19 @@ func set_fullscreen(enabled: bool) -> void:
 		_apply_window_size()  # restore the known windowed size when leaving fullscreen
 
 
-## Whether Project Settings > Retro Style > Force Resolution is on — the
-## Settings menu hides its Resolution control in that case, since
-## window_resolution wouldn't do anything visible. The actual pixelation
-## this implies is baked into project.godot by
-## tools/setup_project.gd::_setup_window_stretch(), not applied here — see
-## its doc comment on FORCE_RESOLUTION_SETTING for why.
+## Whether the game is *actually* running with a forced internal
+## resolution right now. Deliberately checks the baked
+## display/window/stretch/mode setting instead of the
+## retro_style/force_resolution toggle: the toggle is only ever an
+## *intent* — tools/setup_project.gd has to be re-run for it to actually
+## take effect (see tools/setup_project.gd's doc comment on
+## FORCE_RESOLUTION_SETTING) — so checking the toggle directly can tell
+## the player "resolution is fixed"
+## while the game is, in reality, still running unforced (stale bake).
+## Checking the baked setting instead means the Settings menu can never
+## lie about this, whatever state the toggle happens to be in.
 func is_resolution_forced() -> bool:
-	return ProjectSettings.get_setting(FORCE_RESOLUTION_SETTING, false)
+	return ProjectSettings.get_setting("display/window/stretch/mode", "disabled") == "viewport"
 
 
 ## Called by main.gd once the persistent shell's WorldEnvironment node
@@ -196,7 +200,7 @@ func _apply_fullscreen() -> void:
 ## and from set_window_resolution()/set_fullscreen() — see
 ## set_window_resolution()'s doc comment for why this isn't part of the
 ## general apply_settings() path. The forced-resolution pixelation itself
-## is separate — see FORCE_RESOLUTION_SETTING's doc comment above and
+## is separate — see is_resolution_forced()'s doc comment and
 ## tools/setup_project.gd::_setup_window_stretch().
 func _apply_window_size() -> void:
 	var window := get_window()
