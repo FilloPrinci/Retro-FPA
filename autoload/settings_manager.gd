@@ -12,14 +12,15 @@ const DEFAULT_MOUSE_SENSITIVITY := 0.15
 const DEFAULT_LOCALE := "en"
 
 ## Retro rendering look, applied via a VisualStyleProfile — see
-## core/visual_style/visual_style_profile.gd and docs/visual_style.md. The
-## default comes from the "Visual Style" Project Setting (Project >
+## core/visual_style/visual_style_profile.gd and docs/visual_style.md.
+## Always read live from the "Visual Style" Project Setting (Project >
 ## Project Settings > General > Retro Style, added by
-## addons/retro_visual_style) rather than a constant here, so picking a
-## style doesn't mean editing scripts. Not currently exposed in the
-## Settings menu: this is meant as a per-game art-direction choice, not a
-## player-facing option yet — the plumbing (persistence, runtime apply) is
-## already here so exposing it later is just adding a menu control.
+## addons/retro_visual_style) — deliberately NOT persisted to
+## user://settings.cfg like the fields below, unlike them it has no
+## Settings-menu control yet, so there's no player action that should ever
+## freeze it to a stale saved value that silently outlives a Project
+## Settings change. Wiring up a menu control later means persisting it the
+## same way the others are.
 enum VisualStyle { PS1, N64, GAMECUBE }
 const VISUAL_STYLE_SETTING := "retro_style/visual_style"
 const VISUAL_STYLE_PROFILES := {
@@ -87,16 +88,18 @@ func load_settings() -> void:
 		ambient_volume = config.get_value(SECTION, "ambient_volume", ambient_volume)
 		mouse_sensitivity = config.get_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
 		locale = config.get_value(SECTION, "locale", locale)
-		visual_style = config.get_value(SECTION, "visual_style", visual_style) as VisualStyle
 		window_resolution = config.get_value(SECTION, "window_resolution", window_resolution)
 		fullscreen = config.get_value(SECTION, "fullscreen", fullscreen)
+	# Not from config: see the doc comment on `visual_style` above. Always
+	# re-read fresh, so load_settings() re-syncs it even if something else
+	# already changed it this session.
+	visual_style = _get_project_default_visual_style()
 	apply_settings()
 
 
-## The game's chosen style, read from the "retro_style/visual_style"
+## The game's chosen style, read live from the "retro_style/visual_style"
 ## Project Setting (see addons/retro_visual_style) — falls back to PS1 if
-## it was never set. Only used as visual_style's initial value; once
-## user://settings.cfg has a saved value, that wins instead.
+## it was never set.
 func _get_project_default_visual_style() -> VisualStyle:
 	return ProjectSettings.get_setting(VISUAL_STYLE_SETTING, VisualStyle.PS1) as VisualStyle
 
@@ -109,7 +112,6 @@ func save_settings() -> void:
 	config.set_value(SECTION, "ambient_volume", ambient_volume)
 	config.set_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
 	config.set_value(SECTION, "locale", locale)
-	config.set_value(SECTION, "visual_style", visual_style)
 	config.set_value(SECTION, "window_resolution", window_resolution)
 	config.set_value(SECTION, "fullscreen", fullscreen)
 	config.save(SETTINGS_PATH)
@@ -123,6 +125,7 @@ func apply_settings() -> void:
 	_apply_bus_volume("Ambient", ambient_volume)
 	if TranslationServer.get_locale() != locale:
 		TranslationServer.set_locale(locale)
+	visual_style = _get_project_default_visual_style()
 	_apply_visual_style()
 	_apply_resolution()
 	settings_changed.emit()

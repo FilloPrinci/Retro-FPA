@@ -135,14 +135,26 @@ anything into `project.godot`.
 
 ## Not (yet) a player-facing setting
 
-`SettingsManager.visual_style` is persisted exactly like `locale` or
-`mouse_sensitivity` (same `ConfigFile`, same `apply_settings()` path), so
-the plumbing for an in-game "Visual Style" option already exists. It isn't
-wired into `ui/settings_menu/` on purpose — this is meant as an
-art-direction choice for the game, not something a player switches
-mid-playthrough. Wiring it up later is just adding a control (an
-`OptionButton`, the same way `settings_menu.gd` already handles language)
-that sets `SettingsManager.visual_style` and calls `apply_settings()`.
+`SettingsManager.visual_style` is **not** persisted to
+`user://settings.cfg` — deliberately, unlike `locale`/`mouse_sensitivity`/
+`window_resolution`/`fullscreen`. It's always re-read live from the
+Project Setting, in both `load_settings()` and `apply_settings()`. This
+was a real bug at one point: it *was* bundled into
+`save_settings()`/`load_settings()` "for when it becomes player-facing
+later," but since it has no Settings-menu control yet, nothing ever
+*means* to save it — it just silently rode along the first time a player
+saved any other setting (e.g. adjusting mouse sensitivity), freezing
+whatever the Project Setting happened to be at that moment into
+`user://settings.cfg` forever, so a later Project Settings change
+appeared to do nothing.
+
+Wiring up a real in-game "Visual Style" option later means: add an
+`OptionButton` to `ui/settings_menu/` (the same way `settings_menu.gd`
+already handles language), have it call
+`SettingsManager.visual_style = ...`, and *at that point* also add
+`visual_style` back into `save_settings()`/`load_settings()`'s `ConfigFile`
+round-trip — persistence only belongs there once a menu control is the
+thing setting it.
 
 ## Scope and what's not covered
 
