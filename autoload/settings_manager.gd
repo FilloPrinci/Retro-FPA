@@ -101,6 +101,7 @@ func load_settings() -> void:
 	# already changed it this session.
 	visual_style = _get_project_default_visual_style()
 	apply_settings()
+	_apply_window_size()  # once, at startup — see its doc comment
 
 
 ## The game's chosen style, read live from the "retro_style/visual_style"
@@ -133,8 +134,27 @@ func apply_settings() -> void:
 		TranslationServer.set_locale(locale)
 	visual_style = _get_project_default_visual_style()
 	_apply_visual_style()
-	_apply_resolution()
+	_apply_fullscreen()
 	settings_changed.emit()
+
+
+## The Settings menu's Resolution dropdown — the only place a window
+## resize should be forced. apply_settings() deliberately does NOT resize
+## the window on every call: it used to, and that meant pressing Back (or
+## changing any unrelated setting) silently reverted a manual window
+## resize (dragging the border) back to whatever window_resolution was
+## last set to.
+func set_window_resolution(resolution: Vector2i) -> void:
+	window_resolution = resolution
+	_apply_window_size()
+
+
+## The Settings menu's Fullscreen checkbox.
+func set_fullscreen(enabled: bool) -> void:
+	fullscreen = enabled
+	_apply_fullscreen()
+	if not enabled:
+		_apply_window_size()  # restore the known windowed size when leaving fullscreen
 
 
 ## Whether Project Settings > Retro Style > Force Resolution is on — the
@@ -163,22 +183,26 @@ func _apply_bus_volume(bus_name: String, linear_volume: float) -> void:
 	AudioServer.set_bus_volume_db(bus_index, linear_to_db(clampf(linear_volume, 0.0, 1.0)))
 
 
-## Applies fullscreen/windowed mode and the window size (when the style
-## isn't forcing its own internal resolution). The forced-resolution
-## pixelation itself is NOT applied here — see FORCE_RESOLUTION_SETTING's
-## doc comment above and tools/setup_project.gd::_setup_window_stretch():
-## changing Window.content_scale_mode/content_scale_size at runtime, after
-## the window and its CanvasLayers already rendered a frame, produced a
-## wrongly-positioned UI in an exported build, so that half moved to
-## setup-time instead.
-func _apply_resolution() -> void:
+## Sets fullscreen/windowed mode. Deliberately doesn't touch window.size —
+## see set_window_resolution()'s doc comment.
+func _apply_fullscreen() -> void:
 	var window := get_window()
 	if window == null:
 		return  # No window in this context (e.g. a headless run).
-
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
-	if not fullscreen:
-		window.size = window_resolution
+
+
+## Resizes the actual window to window_resolution. Only called at startup
+## and from set_window_resolution()/set_fullscreen() — see
+## set_window_resolution()'s doc comment for why this isn't part of the
+## general apply_settings() path. The forced-resolution pixelation itself
+## is separate — see FORCE_RESOLUTION_SETTING's doc comment above and
+## tools/setup_project.gd::_setup_window_stretch().
+func _apply_window_size() -> void:
+	var window := get_window()
+	if window == null or fullscreen:
+		return
+	window.size = window_resolution
 
 
 ## Applies the runtime-safe half of the chosen VisualStyleProfile (fog,

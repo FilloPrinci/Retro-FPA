@@ -102,13 +102,11 @@ func _on_language_selected(index: int) -> void:
 
 
 func _on_resolution_selected(index: int) -> void:
-	SettingsManager.window_resolution = SettingsManager.RESOLUTION_CHOICES[index]
-	SettingsManager.apply_settings()
+	SettingsManager.set_window_resolution(SettingsManager.RESOLUTION_CHOICES[index])
 
 
 func _on_fullscreen_toggled(enabled: bool) -> void:
-	SettingsManager.fullscreen = enabled
-	SettingsManager.apply_settings()
+	SettingsManager.set_fullscreen(enabled)
 
 
 func _on_back_pressed() -> void:
