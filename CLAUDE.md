@@ -16,8 +16,10 @@ of this project. The goal is that building a new game means writing content
 (levels, dialogue, translations, models, materials) rather than writing new
 systems.
 
-See "How to use this as a template" below for the concrete workflow, and
-`docs/blender_workflow.md` for the animated-model pipeline.
+See "How to use this as a template" below for the concrete workflow,
+`docs/blender_workflow.md` for the animated-model pipeline, and
+`docs/blender_asset_guidelines.md` for asset creation guidelines across every
+category (statics, props, entities).
 
 ## Architecture summary
 
