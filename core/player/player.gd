@@ -27,7 +27,6 @@ var _is_crouching: bool = false
 
 func _ready() -> void:
 	add_to_group("player")
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	head.position.y = standing_eye_height
 	_update_collision_shape(standing_eye_height)
 

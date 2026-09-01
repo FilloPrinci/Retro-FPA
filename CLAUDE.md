@@ -34,10 +34,11 @@ See "How to use this as a template" below for the concrete workflow, and
   scenes under `levels/` contain only geometry, `SpawnPoint`s, NPCs and
   triggers: never the player, never menus.
 - **Game state drives UI, not the other way around**: `GameManager.state`
-  (`MAIN_MENU` / `PLAYING` / `PAUSED` / `DIALOGUE`) is the single source of
-  truth. Menus, HUD and the player controller each react to
+  (`MAIN_MENU` / `PLAYING` / `PAUSED` / `DIALOGUE` / `INVENTORY`) is the
+  single source of truth. Menus, HUD and the player controller each react to
   `GameManager.state_changed` independently instead of being pushed around
-  by a central UI controller.
+  by a central UI controller. `GameManager` also owns the mouse cursor mode
+  from this state: captured while `PLAYING`, visible for every other state.
 
 ## Autoloads
 

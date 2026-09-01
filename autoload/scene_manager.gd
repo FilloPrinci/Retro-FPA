@@ -30,7 +30,6 @@ func start_new_game(first_level_path: String, spawn_id: String = "default") -> v
 	GameManager.clear_flags()
 	InventoryManager.clear()
 	await change_scene(first_level_path, spawn_id)
-	GameManager.state = GameManager.GameState.PLAYING
 
 
 ## Tears down the current run and shows the main menu again.
@@ -67,6 +66,12 @@ func change_scene(scene_path: String, spawn_id: String = "default") -> void:
 	var level := packed_scene.instantiate()
 	_current_level.add_child(level)
 	_place_player_at_spawn(level, spawn_id)
+
+	# Flip to PLAYING while the screen is still fully black, so menu/HUD
+	# visibility (driven by GameManager.state) has already caught up before
+	# fade_in starts revealing the level — otherwise the old menu flashes
+	# on screen for the first moment of the reveal.
+	GameManager.state = GameManager.GameState.PLAYING
 
 	if _fade_overlay:
 		await _fade_overlay.fade_in()

@@ -16,13 +16,17 @@ enum GameState {
 	PLAYING,
 	PAUSED,
 	DIALOGUE,
+	INVENTORY,
 }
 
+## Also owns the mouse cursor mode: captured while PLAYING, visible for every
+## menu/overlay state, so no menu needs to remember to release it itself.
 var state: GameState = GameState.MAIN_MENU:
 	set(value):
 		if state == value:
 			return
 		state = value
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if state == GameState.PLAYING else Input.MOUSE_MODE_VISIBLE
 		state_changed.emit(state)
 
 ## Whether the player controller should react to input. Dialogue, cutscenes
