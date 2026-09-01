@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="DialogueData" format=3]
+[gd_resource type="Resource" script_class="DialogueData" format=3 uid="uid://csi1g3jasmpcs"]
 
-[ext_resource type="Script" path="res://core/dialogue/dialogue_line.gd" id="1_lsjix"]
-[ext_resource type="Script" path="res://core/dialogue/dialogue_choice.gd" id="2_kn3oe"]
-[ext_resource type="Script" path="res://core/dialogue/dialogue_data.gd" id="3_necre"]
+[ext_resource type="Script" uid="uid://bhnrrnkd7hmj5" path="res://core/dialogue/dialogue_line.gd" id="1_lsjix"]
+[ext_resource type="Script" uid="uid://cx0ue3pe4d6lb" path="res://core/dialogue/dialogue_choice.gd" id="2_kn3oe"]
+[ext_resource type="Script" uid="uid://dsqjeh5wplo5w" path="res://core/dialogue/dialogue_data.gd" id="3_necre"]
 
 [sub_resource type="Resource" id="Resource_17us2"]
 script = ExtResource("2_kn3oe")

@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://bafox5vkd3t7m"]
+
+[ext_resource type="PackedScene" uid="uid://bxwsu01gju8jd" path="res://assets/models/TestStructure.glb" id="1_5u7rk"]
+[ext_resource type="Texture2D" uid="uid://bw1poeiom3q5o" path="res://assets/textures/test_checkerboard.png" id="2_wgcn1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gk6ie"]
+albedo_color = Color(0.20587507, 3.85046e-06, 0.95090526, 1)
+albedo_texture = ExtResource("2_wgcn1")
+metallic = 0.31
+metallic_specular = 0.7
+uv1_scale = Vector3(10, 10, 10)
+
+[node name="TestStructure" unique_id=1316640642 instance=ExtResource("1_5u7rk")]
+
+[node name="Cube" parent="." index="0" unique_id=876121649]
+surface_material_override/0 = SubResource("StandardMaterial3D_gk6ie")
