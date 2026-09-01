@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(godot --headless -s res://tools/setup_project.gd)",
+      "Bash(timeout 30 godot --headless --quit)",
+      "Bash(timeout 60 godot --headless --editor --quit)",
+      "Bash(timeout 20 godot --headless -s res://tools/smoke_test.gd)",
+      "Bash(echo \"HOME=$HOME\"; ls -la \"$HOME\" | grep -iE \"doc\"; echo \"---\"; find \"$HOME\" -maxdepth 4 -iname \"*github*\" -type d 2>/dev/null)",
+      "Read(//home/fillo/**)",
+      "Bash(ls -la /home/fillo/Documenti/GitHub/ 2>/dev/null)",
+      "Read(//home/fillo/Documenti/GitHub/**)"
+    ]
+  }
+}
