@@ -72,15 +72,28 @@ func _play_shake() -> void:
 	_tween.tween_property(_current_view, "rotation:z", rot.z, 0.08)
 
 
-## Quick downward-forward slash and back — melee attack swing.
+## Diagonal slash: a short wind-up down-and-left, then a fast sweep up
+## and to the right that carries *past* the rest pose before easing back.
+## Rotating in place around the rest position read as a stab, not a
+## swing — the blade needs to actually travel across the screen, i.e. the
+## pivot itself has to move, not just the blade's orientation.
 func _play_melee_swing() -> void:
 	_restart_tween()
 	var base_pos := _rest_transform.origin
-	var rot := _rest_transform.basis.get_euler()
-	_tween.tween_property(_current_view, "rotation:x", rot.x - deg_to_rad(45.0), 0.08)
-	_tween.parallel().tween_property(_current_view, "position:z", base_pos.z - 0.12, 0.08)
-	_tween.tween_property(_current_view, "rotation:x", rot.x, 0.14)
-	_tween.parallel().tween_property(_current_view, "position:z", base_pos.z, 0.14)
+	var base_rot := _rest_transform.basis.get_euler()
+
+	var windup_pos := base_pos + Vector3(-0.09, -0.09, 0.04)
+	var windup_rot := base_rot + Vector3(0.0, 0.0, deg_to_rad(-20.0))
+
+	var slash_pos := base_pos + Vector3(0.16, 0.14, -0.10)
+	var slash_rot := base_rot + Vector3(0.0, 0.0, deg_to_rad(40.0))
+
+	_tween.tween_property(_current_view, "position", windup_pos, 0.05)
+	_tween.parallel().tween_property(_current_view, "rotation", windup_rot, 0.05)
+	_tween.tween_property(_current_view, "position", slash_pos, 0.09)
+	_tween.parallel().tween_property(_current_view, "rotation", slash_rot, 0.09)
+	_tween.tween_property(_current_view, "position", base_pos, 0.13)
+	_tween.parallel().tween_property(_current_view, "rotation", base_rot, 0.13)
 
 
 ## Quick backward-up kick and return — firearm recoil.
