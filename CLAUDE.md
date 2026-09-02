@@ -152,6 +152,22 @@ and written straight to `translations/dialogue.csv`) instead of requiring
 a trip to the CSV file. Everything runs from the dock/Inspector — no
 terminal needed.
 
+The same idea applies to world objects. `core/world_item/world_item.gd`
+(`WorldItem`, `class_name` + `@tool`) is a node added like any other
+(Create New Node > WorldItem) with a `kind` export toggling between
+PHYSICAL (a grabbable prop: `RigidBody3D` + `Grabbable`, like the demo
+Crate) and PICKUPABLE (`StaticBody3D` + `InteractableComponent` +
+`ItemPickup`) — it builds/rebuilds the right body itself, same
+model/material/body_size exports as `NpcBody`. `addons/item_tools/` is
+the matching in-editor plugin: an "Oggetti" dock with a **New object**
+wizard (scaffolds an `ItemData` .tres — plus a `MeleeWeaponBehavior`/
+`RangedWeaponBehavior` .tres with sensible defaults for melee/ranged —
+and placeholder `translations/items.csv` rows; assigns the result
+straight to a selected `WorldItem`'s `item` field — see
+`item_scaffolder.gd`) and a **Validate objects** button
+(`item_validator.gd` — duplicate/missing ids, text/name keys missing from
+`translations/*.csv`, a ranged weapon behavior with no `ammo_item` set).
+
 ## Maintenance note
 
 When a core system is added or its API changes, update the autoload table
