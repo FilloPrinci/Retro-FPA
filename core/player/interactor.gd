@@ -4,6 +4,16 @@ extends RayCast3D
 ## "interact" input. Does not know about dialogue, inventory, doors, etc. —
 ## it only finds an InteractableComponent and lets it emit `interacted`.
 
+## Whenever GameManager.control_enabled goes false -> true (e.g. a dialogue
+## you closed with "interact" itself just ended), "interact" is ignored
+## for this long. Without it, the very press that closes something (say,
+## the last line of a dialogue, which has no next_id/choices so pressing
+## "interact" ends it) is *still* "just pressed" the instant control comes
+## back — same frame, same physics step — and if the player is still
+## looking at the same NPC, this would immediately re-fire a fresh
+## interaction on it (a dialogue reads as "restarting" instead of closing).
+const REACTIVATION_COOLDOWN_MS := 500
+
 signal interactable_changed(prompt_text_key: String)
 signal interactable_lost
 
@@ -18,11 +28,21 @@ var _current: InteractableComponent = null
 ## check; is_instance_valid() is the only reliable "is it still alive" one.
 var _has_current: bool = false
 
+var _was_control_enabled: bool = true
+## Initialized so the very first frame's cooldown check already passes —
+## nothing to "just have regained" control from at boot.
+var _control_regained_at_ms: int = -REACTIVATION_COOLDOWN_MS
+
 
 func _physics_process(_delta: float) -> void:
 	if not GameManager.control_enabled:
+		_was_control_enabled = false
 		_clear_current()
 		return
+
+	if not _was_control_enabled:
+		_was_control_enabled = true
+		_control_regained_at_ms = Time.get_ticks_msec()
 
 	if _has_current and not is_instance_valid(_current):
 		_clear_current()
@@ -39,7 +59,8 @@ func _physics_process(_delta: float) -> void:
 		else:
 			interactable_lost.emit()
 
-	if _has_current and Input.is_action_just_pressed("interact"):
+	var cooldown_elapsed := Time.get_ticks_msec() - _control_regained_at_ms >= REACTIVATION_COOLDOWN_MS
+	if _has_current and cooldown_elapsed and Input.is_action_just_pressed("interact"):
 		_current.interacted.emit(get_owner())
 
 
