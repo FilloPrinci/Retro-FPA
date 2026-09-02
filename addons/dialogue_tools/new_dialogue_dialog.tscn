@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/dialogue_tools/new_dialogue_dialog.gd" id="1"]
+
+[node name="NewDialogueDialog" type="ConfirmationDialog"]
+title = "Nuovo dialogo NPC"
+size = Vector2i(360, 160)
+script = ExtResource("1")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 352.0
+offset_bottom = 120.0
+
+[node name="SelectedNodeLabel" type="Label" parent="VBox"]
+text = "Nodo selezionato: (nessuno)"
+
+[node name="SlugRow" type="HBoxContainer" parent="VBox"]
+
+[node name="SlugLabel" type="Label" parent="VBox/SlugRow"]
+custom_minimum_size = Vector2(140, 0)
+text = "Nome dialogo (slug):"
+
+[node name="SlugEdit" type="LineEdit" parent="VBox/SlugRow"]
+size_flags_horizontal = 3
+placeholder_text = "es. guardia_ingresso"
+
+[node name="SpeakerRow" type="HBoxContainer" parent="VBox"]
+
+[node name="SpeakerLabel" type="Label" parent="VBox/SpeakerRow"]
+custom_minimum_size = Vector2(140, 0)
+text = "Nome parlante:"
+
+[node name="SpeakerEdit" type="LineEdit" parent="VBox/SpeakerRow"]
+size_flags_horizontal = 3
+placeholder_text = "es. La Guardia"
