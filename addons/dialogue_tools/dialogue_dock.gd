@@ -1,12 +1,15 @@
 @tool
 extends VBoxContainer
-## Bottom-panel dock ("Dialoghi") — two buttons, no terminal needed:
-## "Nuovo dialogo NPC..." asks the plugin to open the wizard for whatever
-## node is selected in the scene, "Valida dialoghi" runs DialogueValidator
-## and prints the results right here.
+## Bottom-panel dock ("Dialoghi") — three buttons, no terminal needed:
+## "Nuovo NPC" asks the plugin to scaffold a placeholder NPC body under
+## whatever's selected (or the scene root), "Nuovo dialogo NPC..." asks it
+## to open the wizard for whatever node is selected, "Valida dialoghi"
+## runs DialogueValidator and prints the results right here.
 
+signal new_npc_requested
 signal new_dialogue_requested
 
+@onready var new_npc_button: Button = $Toolbar/NewNpcButton
 @onready var new_dialogue_button: Button = $Toolbar/NewDialogueButton
 @onready var validate_button: Button = $Toolbar/ValidateButton
 @onready var results_label: RichTextLabel = $ResultsLabel
@@ -15,6 +18,7 @@ signal new_dialogue_requested
 func _ready() -> void:
 	results_label.bbcode_enabled = true
 	results_label.text = "Premi \"Valida dialoghi\" per controllare resources/dialogues/."
+	new_npc_button.pressed.connect(func(): new_npc_requested.emit())
 	new_dialogue_button.pressed.connect(func(): new_dialogue_requested.emit())
 	validate_button.pressed.connect(_on_validate_pressed)
 

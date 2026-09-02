@@ -129,8 +129,11 @@ class cache before relying on headless runs: `godot --headless --editor
 --quit`.
 
 `addons/dialogue_tools/` is an in-editor plugin (Project Settings > Plugins)
-for authoring NPC dialogue without hand-writing `.tres`/CSV content: a
-"Dialoghi" bottom-panel dock with a **New NPC Dialogue** wizard (scaffolds a
+for authoring NPCs and their dialogue without hand-writing `.tres`/CSV
+content or scene nodes: a "Dialoghi" bottom-panel dock with a **New NPC**
+button (scaffolds a placeholder body — `StaticBody3D` + boxed
+`MeshInstance3D`/`CollisionShape3D` — under the selected node or the scene
+root, see `npc_scaffolder.gd`), a **New NPC Dialogue** wizard (scaffolds a
 `DialogueData`, an `InteractableComponent` + `DialogueTrigger` on the
 selected node, and placeholder `translations/dialogue.csv` rows in one
 step — see `dialogue_scaffolder.gd`) and a **Validate dialogues** button
@@ -139,7 +142,10 @@ broken `next_id` references, unreachable lines, and text/speaker keys
 missing from `translations/*.csv`). It also swaps the Inspector's free-text
 `next_id`/flag fields on `DialogueLine`/`DialogueChoice` for dropdowns
 populated from the dialogue actually being edited, so links can't be
-typo'd. Everything runs from the dock/Inspector — no terminal needed.
+typo'd, and shows each line/choice's actual EN/IT text inline (read from
+and written straight to `translations/dialogue.csv`) instead of requiring
+a trip to the CSV file. Everything runs from the dock/Inspector — no
+terminal needed.
 
 ## Maintenance note
 

@@ -2,9 +2,12 @@
 extends EditorPlugin
 ## Dialogue Tools — everything from Project > Tools has been deliberately
 ## avoided in favor of one bottom-panel dock ("Dialoghi") plus native
-## Inspector widgets, so setting up an NPC's dialogue never needs the
+## Inspector widgets, so setting up a talking NPC never needs the
 ## terminal or a headless script:
 ##
+## - Dock button "Nuovo NPC": scaffolds a placeholder NPC body
+##   (StaticBody3D + boxed MeshInstance3D/CollisionShape3D) under
+##   whichever node is selected (or the scene root) — see npc_scaffolder.gd.
 ## - Dock button "Nuovo dialogo NPC...": scaffolds a DialogueData .tres
 ##   (one starting line), an InteractableComponent + DialogueTrigger under
 ##   whichever node is selected in the scene, and placeholder rows in
@@ -28,6 +31,7 @@ var _inspector_plugin: EditorInspectorPlugin
 func _enter_tree() -> void:
 	_dock = DOCK_SCENE.instantiate()
 	add_control_to_bottom_panel(_dock, "Dialoghi")
+	_dock.new_npc_requested.connect(_on_new_npc_requested)
 	_dock.new_dialogue_requested.connect(_on_new_dialogue_requested)
 
 	_wizard = WIZARD_SCENE.instantiate()
@@ -47,6 +51,16 @@ func _exit_tree() -> void:
 	_dock.queue_free()
 	_wizard.queue_free()
 	_result_dialog.queue_free()
+
+
+func _on_new_npc_requested() -> void:
+	var selected := get_editor_interface().get_selection().get_selected_nodes()
+	var parent: Node = selected[0] if not selected.is_empty() else get_editor_interface().get_edited_scene_root()
+	var result := NpcScaffolder.create(parent)
+	_show_result(result)
+	if result.ok:
+		get_editor_interface().get_selection().clear()
+		get_editor_interface().get_selection().add_node(result.node)
 
 
 func _on_new_dialogue_requested() -> void:
