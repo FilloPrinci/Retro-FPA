@@ -8,31 +8,38 @@ signal interactable_changed(prompt_text_key: String)
 signal interactable_lost
 
 var _current: InteractableComponent = null
+## Tracked separately from _current's own nullness/truthiness: a freed
+## Object compares EQUAL to null and is falsy in GDScript (Godot's
+## "stale reference" safety), so once the thing we're pointing at is
+## queue_free()'d (e.g. picked up), `_current` can no longer be told
+## apart from "nothing" by `if _current:` or `== / !=` — those all
+## silently agree it's null even though is_instance_valid() correctly
+## says otherwise. _has_current is the only reliable "is there something"
+## check; is_instance_valid() is the only reliable "is it still alive" one.
+var _has_current: bool = false
 
 
 func _physics_process(_delta: float) -> void:
 	if not GameManager.control_enabled:
-		if _current:
-			_clear_current()
+		_clear_current()
 		return
 
-	# An interactable picked up (or otherwise freed) while it's still
-	# _current leaves a dangling reference — Godot compares a freed Object
-	# equal to null, so `found != _current` below would silently never
-	# trip and the prompt would stay stuck forever. Clear it explicitly
-	# first so that comparison is always against a live reference or null.
-	if _current and not is_instance_valid(_current):
+	if _has_current and not is_instance_valid(_current):
 		_clear_current()
 
+	# _current is now guaranteed to be either null or a live reference
+	# (the freed case was just handled above via _has_current, never by
+	# comparing the stale reference itself), so this compare is safe.
 	var found := _find_interactable()
 	if found != _current:
 		_current = found
-		if _current:
+		_has_current = found != null
+		if _has_current:
 			interactable_changed.emit(_current.prompt_text_key)
 		else:
 			interactable_lost.emit()
 
-	if _current and Input.is_action_just_pressed("interact"):
+	if _has_current and Input.is_action_just_pressed("interact"):
 		_current.interacted.emit(get_owner())
 
 
@@ -49,5 +56,8 @@ func _find_interactable() -> InteractableComponent:
 
 
 func _clear_current() -> void:
+	if not _has_current:
+		return
 	_current = null
+	_has_current = false
 	interactable_lost.emit()
