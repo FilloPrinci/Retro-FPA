@@ -8,9 +8,12 @@ extends EditorProperty
 ## via DialogueTranslationIO. No more leaving the Inspector to hand-edit
 ## the CSV for every line.
 ##
-## Writes commit on focus-lost/Enter, not on every keystroke, to avoid
-## rewriting the CSV (and triggering a filesystem rescan) on every
-## character typed.
+## Everything here — the key field included — commits on focus-lost/Enter,
+## not on every keystroke: emit_changed() on every character makes the
+## Inspector re-sync this property's editor mid-typing, and reassigning
+## LineEdit.text (even to the same string) resets its caret to the start,
+## so a live-typing hookup makes the cursor jump back to column 0 after
+## every character.
 
 var _key_edit: LineEdit
 var _en_edit: LineEdit
@@ -23,7 +26,8 @@ func _init() -> void:
 
 	_key_edit = LineEdit.new()
 	_key_edit.placeholder_text = "chiave di traduzione"
-	_key_edit.text_changed.connect(_on_key_changed)
+	_key_edit.focus_exited.connect(_commit_key)
+	_key_edit.text_submitted.connect(func(_text): _commit_key())
 	vbox.add_child(_key_edit)
 
 	_en_edit = _make_translation_row(vbox, "EN:")
@@ -64,9 +68,10 @@ func _load_translation(key: String) -> void:
 	_it_edit.text = row.it
 
 
-func _on_key_changed(new_key: String) -> void:
+func _commit_key() -> void:
 	if _updating:
 		return
+	var new_key := _key_edit.text
 	_updating = true
 	_load_translation(new_key)
 	_updating = false

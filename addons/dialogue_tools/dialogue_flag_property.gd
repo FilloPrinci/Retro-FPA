@@ -5,6 +5,12 @@ extends EditorProperty
 ## can still be typed) plus a small "▾" button listing every flag already
 ## used anywhere under resources/dialogues/, so reusing one across
 ## dialogues is a click instead of retyping it exactly right.
+##
+## Commits on focus-lost/Enter, not on every keystroke — a live hookup
+## makes the Inspector re-sync this property editor mid-typing, and
+## reassigning LineEdit.text (even to the same string) resets its caret to
+## the start, so the cursor would jump back to column 0 after every
+## character.
 
 var _line_edit: LineEdit
 var _pick_button: MenuButton
@@ -16,7 +22,8 @@ func _init() -> void:
 
 	_line_edit = LineEdit.new()
 	_line_edit.size_flags_horizontal = SIZE_EXPAND_FILL
-	_line_edit.text_changed.connect(_on_text_changed)
+	_line_edit.focus_exited.connect(_commit_text)
+	_line_edit.text_submitted.connect(func(_text): _commit_text())
 	hbox.add_child(_line_edit)
 
 	_pick_button = MenuButton.new()
@@ -47,7 +54,7 @@ func _on_flag_picked(id: int) -> void:
 	if id < 0 or id >= flags.size():
 		return
 	_line_edit.text = flags[id]
-	_on_text_changed(flags[id])
+	_commit_text()
 
 
 func _collect_known_flags() -> Array:
@@ -86,7 +93,7 @@ func _update_property() -> void:
 	_updating = false
 
 
-func _on_text_changed(new_text: String) -> void:
+func _commit_text() -> void:
 	if _updating:
 		return
-	emit_changed(get_edited_property(), new_text)
+	emit_changed(get_edited_property(), _line_edit.text)

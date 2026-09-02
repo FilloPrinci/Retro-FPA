@@ -21,6 +21,12 @@ func _init(dialogue_data: DialogueData) -> void:
 	_option = OptionButton.new()
 	_option.size_flags_horizontal = SIZE_EXPAND_FILL
 	_option.item_selected.connect(_on_item_selected)
+	# _update_property() alone misses ids added to a *sibling* line
+	# elsewhere in the Inspector after this dropdown was built (adding an
+	# element to `lines` doesn't retroactively refresh an already-open
+	# choice's next_id dropdown) — refreshing again right before it opens
+	# means it's always reading data.lines fresh, not a stale snapshot.
+	_option.get_popup().about_to_popup.connect(_refresh_and_reselect)
 	add_child(_option)
 	add_focusable(_option)
 
@@ -40,7 +46,7 @@ func _refresh_items() -> void:
 		_option.set_item_metadata(_option.item_count - 1, line.id)
 
 
-func _update_property() -> void:
+func _refresh_and_reselect() -> void:
 	_refresh_items()
 	var current: String = get_edited_object().get(get_edited_property())
 
@@ -60,6 +66,10 @@ func _update_property() -> void:
 		_option.set_item_metadata(_option.item_count - 1, current)
 		_option.selected = _option.item_count - 1
 	_updating = false
+
+
+func _update_property() -> void:
+	_refresh_and_reselect()
 
 
 func _on_item_selected(index: int) -> void:
