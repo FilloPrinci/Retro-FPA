@@ -83,10 +83,10 @@ func _play_melee_swing() -> void:
 	var base_rot := _rest_transform.basis.get_euler()
 
 	var windup_pos := base_pos + Vector3(-0.09, -0.09, 0.04)
-	var windup_rot := base_rot + Vector3(0.0, 0.0, deg_to_rad(-20.0))
+	var windup_rot := base_rot + Vector3(0.0, 0.0, deg_to_rad(20.0))
 
 	var slash_pos := base_pos + Vector3(0.16, 0.14, -0.10)
-	var slash_rot := base_rot + Vector3(0.0, 0.0, deg_to_rad(40.0))
+	var slash_rot := base_rot + Vector3(0.0, 0.0, deg_to_rad(-40.0))
 
 	_tween.tween_property(_current_view, "position", windup_pos, 0.05)
 	_tween.parallel().tween_property(_current_view, "rotation", windup_rot, 0.05)
