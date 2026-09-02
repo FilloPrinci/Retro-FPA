@@ -2,6 +2,12 @@ extends Control
 ## Dialogue box shown while GameManager.state == DIALOGUE. Purely reactive to
 ## DialogueManager's signals — same pattern as HUD/PauseMenu, never touches
 ## the dialogue graph itself.
+##
+## Choices can be picked with the mouse (click a button) or the keyboard:
+## move_forward/move_back (already bound to the arrow keys alongside W/S,
+## see project.godot) move the highlighted choice, "interact" confirms
+## it — the same keys already used to move around and interact with the
+## world, nothing dialogue-specific to learn.
 
 @onready var speaker_label: Label = $Panel/VBox/SpeakerLabel
 @onready var text_label: Label = $Panel/VBox/TextLabel
@@ -9,6 +15,7 @@ extends Control
 @onready var continue_prompt: Button = $Panel/VBox/ContinuePrompt
 
 var _has_choices: bool = false
+var _selected_choice: int = 0
 
 
 func _ready() -> void:
@@ -21,8 +28,18 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if GameManager.state != GameManager.GameState.DIALOGUE or _has_choices:
+	if GameManager.state != GameManager.GameState.DIALOGUE:
 		return
+
+	if _has_choices:
+		if event.is_action_pressed("move_back"):
+			_move_selection(1)
+		elif event.is_action_pressed("move_forward"):
+			_move_selection(-1)
+		elif event.is_action_pressed("interact"):
+			DialogueManager.choose(_selected_choice)
+		return
+
 	if event.is_action_pressed("interact"):
 		DialogueManager.advance()
 
@@ -55,9 +72,36 @@ func _set_choices(choices: Array[DialogueChoice]) -> void:
 	_has_choices = not choices.is_empty()
 	choices_box.visible = _has_choices
 	continue_prompt.visible = not _has_choices
+	_selected_choice = 0
 
 	for i in choices.size():
 		var button := Button.new()
 		button.text = tr(choices[i].text_key)
 		button.pressed.connect(DialogueManager.choose.bind(i))
+		# Keeps mouse and keyboard selection in sync — hovering a choice
+		# with the mouse also moves the keyboard-driven highlight to it.
+		button.mouse_entered.connect(_select_choice.bind(i))
 		choices_box.add_child(button)
+
+	if _has_choices:
+		_highlight_selected()
+
+
+## delta: +1 moves to the next choice, -1 to the previous — wraps around
+## at either end (there are usually only 2-3 choices, so wrapping is more
+## convenient than getting stuck at an edge).
+func _move_selection(delta: int) -> void:
+	if choices_box.get_child_count() == 0:
+		return
+	_select_choice(wrapi(_selected_choice + delta, 0, choices_box.get_child_count()))
+
+
+func _select_choice(index: int) -> void:
+	_selected_choice = index
+	_highlight_selected()
+
+
+func _highlight_selected() -> void:
+	var button := choices_box.get_child(_selected_choice) as Button
+	if button:
+		button.grab_focus()
