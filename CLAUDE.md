@@ -128,12 +128,17 @@ After adding or renaming a `class_name` script, rebuild the editor's global
 class cache before relying on headless runs: `godot --headless --editor
 --quit`.
 
+A placeholder NPC body needs no wizard: `core/npc/npc_body.gd` (`NpcBody`,
+`class_name` + `@tool`) is a plain node added the same way as any other
+(Create New Node > NpcBody) that builds its own boxed
+`MeshInstance3D`/`CollisionShape3D` — sized like a standing person,
+resting on the floor — the moment it has none yet, live in the editor.
+Resize later via its `body_size` export; never rebuilds/resets a manual
+reposition once the children exist.
+
 `addons/dialogue_tools/` is an in-editor plugin (Project Settings > Plugins)
-for authoring NPCs and their dialogue without hand-writing `.tres`/CSV
-content or scene nodes: a "Dialoghi" bottom-panel dock with a **New NPC**
-button (scaffolds a placeholder body — `StaticBody3D` + boxed
-`MeshInstance3D`/`CollisionShape3D` — under the selected node or the scene
-root, see `npc_scaffolder.gd`), a **New NPC Dialogue** wizard (scaffolds a
+for authoring NPC dialogue without hand-writing `.tres`/CSV content: a
+"Dialoghi" bottom-panel dock with a **New NPC Dialogue** wizard (scaffolds a
 `DialogueData`, an `InteractableComponent` + `DialogueTrigger` on the
 selected node, and placeholder `translations/dialogue.csv` rows in one
 step — see `dialogue_scaffolder.gd`) and a **Validate dialogues** button
