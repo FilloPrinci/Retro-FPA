@@ -2,9 +2,10 @@ extends Control
 ## TAB-triggered inventory screen (GameManager.state == INVENTORY). Shows the
 ## InventoryManager slots as a grid; hovering a slot shows its name +
 ## description, clicking it equips it (any item can be equipped, not just
-## weapons — see InventoryManager.equip_slot) — clicking the already
-## equipped slot unequips it. Reacts to GameManager.state and
-## InventoryManager's signals, same pattern as PauseMenu/HUD.
+## weapons — see InventoryManager.equip_slot). Clicking the already
+## equipped slot, or any empty slot, unequips whatever's currently
+## equipped. Reacts to GameManager.state and InventoryManager's signals,
+## same pattern as PauseMenu/HUD.
 
 @onready var grid: GridContainer = $Panel/VBox/Grid
 @onready var item_name_label: Label = $Panel/VBox/Details/ItemNameLabel
@@ -94,7 +95,10 @@ func _refresh() -> void:
 		if slot.is_empty():
 			button.icon = null
 			button.text = ""
-			button.disabled = true
+			# Stays clickable (not disabled) — clicking an empty slot
+			# unequips whatever's currently equipped, same as clicking the
+			# equipped slot itself. See _on_slot_pressed().
+			button.disabled = false
 			button.remove_theme_stylebox_override("normal")
 			continue
 
@@ -118,10 +122,12 @@ func _on_slot_hovered(index: int) -> void:
 
 
 ## Click only equips/unequips — the equipped slot gets _equipped_stylebox
-## in _refresh() so it's clearly highlighted.
+## in _refresh() so it's clearly highlighted. An empty slot has nothing to
+## equip, so clicking one just unequips (a no-op if nothing was equipped).
 func _on_slot_pressed(index: int) -> void:
 	var slot := InventoryManager.get_slots()[index]
 	if slot.is_empty():
+		InventoryManager.unequip()
 		return
 
 	if InventoryManager.get_equipped_index() == index:
