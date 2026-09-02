@@ -1,16 +1,16 @@
 extends Node3D
 ## Physics "grab" system (Half-Life / Amnesia style): point at a Grabbable
-## RigidBody3D, hold it in front of the camera, optionally rotate it with
-## the mouse, then throw it or just drop it. General-purpose — works on any
-## RigidBody3D that has a Grabbable child, nothing scene-specific here.
+## RigidBody3D and press "interact" — the same key used to talk to an NPC
+## or pick up an item, so every interaction in the game uses one button —
+## to pick it up, hold it in front of the camera, optionally rotate it
+## with the mouse, then either throw it ("primary_action", left click) or
+## just set it back down ("interact" again). General-purpose — works on
+## any RigidBody3D that has a Grabbable child, nothing scene-specific here.
 ##
 ## Grabbing while an item is equipped unequips it first (kept in the
 ## inventory, just no longer held) so both hands are free for the physical
 ## object; the previous equip is restored automatically once the object is
-## thrown, dropped, or otherwise released. EquippedItemInput checks
-## has_grab_target()/is_holding() before firing on "primary_action", so a
-## grab always takes priority over an attack when something grabbable is
-## under the crosshair.
+## thrown, dropped, or otherwise released.
 
 @export var grab_range: float = 3.0
 @export var hold_stiffness: float = 20.0
@@ -51,13 +51,13 @@ func _physics_process(_delta: float) -> void:
 
 	_is_rotating = _held_body != null and Input.is_action_pressed("secondary_action")
 
-	if Input.is_action_just_pressed("primary_action"):
-		if _held_body:
+	if _held_body:
+		if Input.is_action_just_pressed("primary_action"):
 			_throw()
-		else:
-			_try_grab()
-	elif Input.is_action_just_pressed("interact") and _held_body:
-		_release()
+		elif Input.is_action_just_pressed("interact"):
+			_release()
+	elif Input.is_action_just_pressed("interact"):
+		_try_grab()
 
 	if _held_body:
 		_update_hold_position()
@@ -65,13 +65,6 @@ func _physics_process(_delta: float) -> void:
 
 func is_holding() -> bool:
 	return _held_body != null
-
-
-## Whether a fresh grab attempt would find something right now — used by
-## EquippedItemInput to decide whether "primary_action" should grab
-## instead of attacking. Read-only: doesn't touch equip state.
-func has_grab_target() -> bool:
-	return not is_holding() and _find_grab_target() != null
 
 
 func _find_grab_target() -> RigidBody3D:

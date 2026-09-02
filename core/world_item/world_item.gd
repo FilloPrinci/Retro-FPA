@@ -94,6 +94,16 @@ func _rebuild_body() -> void:
 	collision.owner = owner if owner else self
 
 	if kind == Kind.PHYSICAL:
+		# Grabber finds this the same way Interactor finds an NPC's or a
+		# pickup's InteractableComponent — the HUD prompt (and the "press
+		# interact to grab" behavior itself) work the same way everywhere.
+		var interactable := Node.new()
+		interactable.name = "InteractableComponent"
+		interactable.set_script(load(_INTERACTABLE_SCRIPT))
+		interactable.set("prompt_text_key", "UI_INTERACT_GRAB")
+		body.add_child(interactable)
+		interactable.owner = owner if owner else self
+
 		var grabbable := Node.new()
 		grabbable.name = "Grabbable"
 		grabbable.set_script(load(_GRABBABLE_SCRIPT))

@@ -40,8 +40,19 @@ func _on_player_registered(player: Node3D) -> void:
 
 
 func _on_interactable_changed(prompt_text_key: String) -> void:
-	interact_prompt.text = tr(prompt_text_key)
+	interact_prompt.text = "[%s] %s" % [_interact_key_label(), tr(prompt_text_key)]
 	interact_prompt.visible = true
+
+
+## Reads the actual key bound to "interact" from the Input Map instead of
+## hardcoding "E", so a rebind (if this template ever gets a key-binding
+## menu) keeps showing the right key without a code change. No icon/glyph
+## asset exists for this yet, so a plain key name is what's shown for now.
+func _interact_key_label() -> String:
+	for event in InputMap.action_get_events("interact"):
+		if event is InputEventKey:
+			return OS.get_keycode_string(event.physical_keycode)
+	return "?"
 
 
 func _on_interactable_lost() -> void:

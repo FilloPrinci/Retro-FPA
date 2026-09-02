@@ -5,11 +5,12 @@ extends Node
 ## else in the template calls. Sibling component under Player, same style
 ## as Interactor/Grabber.
 ##
-## Yields to Grabber on "primary_action": if there's a Grabbable under the
-## crosshair (or one is already held), that press grabs/throws it instead
-## of firing the equipped item — Grabber itself unequips/re-equips around
-## the grab (see grabber.gd), so this only needs to skip its own action for
-## that one press, not care about the equip state changing around it.
+## No coordination needed with Grabber: picking up/dropping a physical
+## prop uses "interact" (see grabber.gd), unified with every other
+## interaction in the game, so it never competes with primary_action/
+## secondary_action. While something's held, nothing's equipped (Grabber
+## auto-unequips around a grab), so get_equipped_item() is null below and
+## this naturally does nothing until the item is re-equipped on release.
 ##
 ## Also emits primary_used/secondary_used on every press, regardless of
 ## whether the behavior actually did anything (cooldown, out of ammo, ...) —
@@ -29,17 +30,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("primary_action"):
-		if _grabber_wants_primary():
-			return
 		item.equip_behavior.on_primary_use(get_owner())
 		primary_used.emit(item)
 	elif event.is_action_pressed("secondary_action"):
 		item.equip_behavior.on_secondary_use(get_owner())
 		secondary_used.emit(item)
-
-
-func _grabber_wants_primary() -> bool:
-	var grabber := get_owner().get_node_or_null("Grabber") if get_owner() else null
-	if grabber == null:
-		return false
-	return grabber.is_holding() or grabber.has_grab_target()
