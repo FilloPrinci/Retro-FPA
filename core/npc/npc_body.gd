@@ -4,12 +4,11 @@ extends StaticBody3D
 ## Drop this into a scene like any other node (Create New Node > NpcBody,
 ## same "+" dialog as everything else) to get a ready-to-use placeholder
 ## NPC body — no dock/wizard step needed. The moment it has no
-## MeshInstance3D/CollisionShape3D children yet, it builds them itself: a
-## boxed mesh + matching collision shape sized like a standing person,
-## positioned to rest on the floor. @tool so this also happens live in
-## the editor, not just at Play.
+## CollisionShape3D yet, it builds itself: a boxed placeholder mesh +
+## matching collision shape, positioned to rest on the floor. @tool so
+## this also happens live in the editor, not just at Play.
 ##
-## This only ever runs once per node — after the first build, the
+## The initial build only ever runs once per node — after it, the
 ## children are saved with the scene like anything else, so reloading it
 ## (or duplicating the node) never re-triggers or resets a manual
 ## reposition. Purely a shortcut for the boilerplate; nothing here is
@@ -19,68 +18,81 @@ extends StaticBody3D
 ## talking NPC.
 
 ## Always drives CollisionShape3D's size. Also drives the placeholder box
-## mesh's size — but only while `mesh` below is empty; once a real mesh is
-## assigned this only resizes the collider, since a real mesh manages its
-## own dimensions.
+## mesh's size while `model` below is empty.
 @export var body_size: Vector3 = Vector3(0.6, 1.7, 0.6):
 	set(value):
 		body_size = value
 		_apply_size()
 
-## Optional: swap the placeholder box for a real mesh (e.g. an imported
-## character model) straight from the Inspector — no need to select the
-## child MeshInstance3D separately. Leave empty to keep the box.
-@export var mesh: Mesh:
+## Optional: an imported model — e.g. a Blender .glb, imported as a Scene
+## (Godot's default) — to show instead of the placeholder box. Assign the
+## imported *scene* here, not a raw Mesh: a glTF/Blender import comes in
+## as a whole PackedScene (node, materials, possibly a skeleton), never a
+## bare Mesh resource, which is why a Mesh-typed field refuses it. Leave
+## empty to keep the box.
+@export var model: PackedScene:
 	set(value):
-		mesh = value
-		_apply_mesh()
+		model = value
+		_rebuild_visual()
 
-## Optional: material for the mesh — the placeholder box or a custom one
-## assigned above. Applied as a surface override (surface 0), same as
-## every hand-authored mesh in this project's scenes.
+## Optional: material for the placeholder box. Has no effect once `model`
+## is assigned — an imported model brings its own materials/textures.
 @export var material: Material:
 	set(value):
 		material = value
 		_apply_material()
 
+const _MESH_NAME := "MeshInstance3D"
+const _MODEL_NAME := "Model"
+
 
 func _ready() -> void:
-	if not has_node("MeshInstance3D"):
+	if not has_node("CollisionShape3D"):
 		_build()
 
 
 func _build() -> void:
-	var mesh_instance := MeshInstance3D.new()
-	mesh_instance.name = "MeshInstance3D"
-	add_child(mesh_instance)
-	mesh_instance.owner = owner if owner else self
-
 	var collision := CollisionShape3D.new()
 	collision.name = "CollisionShape3D"
 	collision.shape = BoxShape3D.new()
 	add_child(collision)
 	collision.owner = owner if owner else self
 
-	# Mesh/collision sit at local origin (no offset) — lifting the body
-	# itself half the box height off the ground is what makes it rest on
-	# the floor instead of being buried waist-deep in it.
+	# Sits at local origin (no offset) — lifting the body itself half the
+	# box height off the ground is what makes it rest on the floor instead
+	# of being buried waist-deep in it.
 	position.y = body_size.y * 0.5
 
-	_apply_mesh()
 	_apply_size()
-	_apply_material()
+	_rebuild_visual()
 
 
-func _apply_mesh() -> void:
-	if not has_node("MeshInstance3D"):
-		return
-	var mesh_instance := get_node("MeshInstance3D") as MeshInstance3D
-	if mesh:
-		mesh_instance.mesh = mesh
+## Tears down whichever visual currently exists (placeholder box or an
+## instanced model) and builds the one that should be showing now.
+func _rebuild_visual() -> void:
+	if not has_node("CollisionShape3D"):
+		return  # not built yet — _build() will call this itself.
+
+	for child_name in [_MESH_NAME, _MODEL_NAME]:
+		if has_node(child_name):
+			var existing := get_node(child_name)
+			remove_child(existing)
+			existing.free()
+
+	if model:
+		var instance := model.instantiate()
+		instance.name = _MODEL_NAME
+		add_child(instance)
+		instance.owner = owner if owner else self
 	else:
+		var mesh_instance := MeshInstance3D.new()
+		mesh_instance.name = _MESH_NAME
 		var box := BoxMesh.new()
 		box.size = body_size
 		mesh_instance.mesh = box
+		mesh_instance.set_surface_override_material(0, material)
+		add_child(mesh_instance)
+		mesh_instance.owner = owner if owner else self
 
 
 func _apply_size() -> void:
@@ -90,14 +102,13 @@ func _apply_size() -> void:
 	if collision.shape is BoxShape3D:
 		(collision.shape as BoxShape3D).size = body_size
 
-	if mesh == null and has_node("MeshInstance3D"):
-		var mesh_instance := get_node("MeshInstance3D") as MeshInstance3D
+	if model == null and has_node(_MESH_NAME):
+		var mesh_instance := get_node(_MESH_NAME) as MeshInstance3D
 		if mesh_instance.mesh is BoxMesh:
 			(mesh_instance.mesh as BoxMesh).size = body_size
 
 
 func _apply_material() -> void:
-	if not has_node("MeshInstance3D"):
+	if model != null or not has_node(_MESH_NAME):
 		return
-	var mesh_instance := get_node("MeshInstance3D") as MeshInstance3D
-	mesh_instance.set_surface_override_material(0, material)
+	(get_node(_MESH_NAME) as MeshInstance3D).set_surface_override_material(0, material)
