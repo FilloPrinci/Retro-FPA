@@ -50,8 +50,15 @@ func _on_interactable_lost() -> void:
 
 func _on_item_equipped(item: ItemData) -> void:
 	_equipped_item = item
-	equipped_icon.texture = item.icon
-	equipped_icon.visible = item.icon != null
+	# The 2D icon is a fallback for items with no first-person view model
+	# (EquippedItemView shows that instead, bottom-right of the screen) —
+	# showing both at once looks redundant/broken.
+	if item.view_model == null:
+		equipped_icon.texture = item.icon
+		equipped_icon.visible = item.icon != null
+	else:
+		equipped_icon.texture = null
+		equipped_icon.visible = false
 	_update_ammo()
 
 

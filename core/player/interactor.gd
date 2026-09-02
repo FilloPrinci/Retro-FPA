@@ -16,6 +16,14 @@ func _physics_process(_delta: float) -> void:
 			_clear_current()
 		return
 
+	# An interactable picked up (or otherwise freed) while it's still
+	# _current leaves a dangling reference — Godot compares a freed Object
+	# equal to null, so `found != _current` below would silently never
+	# trip and the prompt would stay stuck forever. Clear it explicitly
+	# first so that comparison is always against a live reference or null.
+	if _current and not is_instance_valid(_current):
+		_clear_current()
+
 	var found := _find_interactable()
 	if found != _current:
 		_current = found

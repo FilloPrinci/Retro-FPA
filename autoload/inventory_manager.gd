@@ -106,12 +106,14 @@ func get_item_count(item_id: String) -> int:
 	return total
 
 
+## Any item can be equipped/held (even a KEY or a plain GENERIC item, just
+## to look at it in first-person view) — item_type doesn't gate this.
+## EquippableBehavior is what makes an equipped item actually *do*
+## something on use; an item with none just sits in EquippedItemView.
 func equip_slot(index: int) -> void:
 	if index < 0 or index >= _slots.size():
 		return
 	if _slots[index].is_empty():
-		return
-	if _slots[index].item.item_type != ItemData.ItemType.EQUIPPABLE:
 		return
 
 	unequip()
