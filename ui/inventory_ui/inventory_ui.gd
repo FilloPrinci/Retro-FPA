@@ -8,7 +8,7 @@ extends Control
 
 @onready var grid: GridContainer = $Panel/VBox/Grid
 @onready var item_name_label: Label = $Panel/VBox/Details/ItemNameLabel
-@onready var item_description_label: Label = $Panel/VBox/Details/ItemDescriptionLabel
+@onready var item_description_label: Label = $Panel/VBox/Details/DescriptionScroll/ItemDescriptionLabel
 @onready var close_button: Button = $Panel/VBox/CloseButton
 
 var _slot_buttons: Array[Button] = []

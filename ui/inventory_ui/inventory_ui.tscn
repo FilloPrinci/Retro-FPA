@@ -36,12 +36,16 @@ theme_override_constants/h_separation = 6
 theme_override_constants/v_separation = 6
 
 [node name="Details" type="VBoxContainer" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 40)
 
 [node name="ItemNameLabel" type="Label" parent="Panel/VBox/Details"]
 horizontal_alignment = 1
 
-[node name="ItemDescriptionLabel" type="Label" parent="Panel/VBox/Details"]
+[node name="DescriptionScroll" type="ScrollContainer" parent="Panel/VBox/Details"]
+custom_minimum_size = Vector2(0, 60)
+horizontal_scroll_mode = 0
+
+[node name="ItemDescriptionLabel" type="Label" parent="Panel/VBox/Details/DescriptionScroll"]
+size_flags_horizontal = 3
 horizontal_alignment = 1
 autowrap_mode = 2
 
