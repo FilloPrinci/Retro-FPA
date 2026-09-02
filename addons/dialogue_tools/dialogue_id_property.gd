@@ -24,9 +24,12 @@ func _init(dialogue_data: DialogueData) -> void:
 	# _update_property() alone misses ids added to a *sibling* line
 	# elsewhere in the Inspector after this dropdown was built (adding an
 	# element to `lines` doesn't retroactively refresh an already-open
-	# choice's next_id dropdown) — refreshing again right before it opens
-	# means it's always reading data.lines fresh, not a stale snapshot.
-	_option.get_popup().about_to_popup.connect(_refresh_and_reselect)
+	# choice's next_id dropdown). about_to_popup turned out to fire too
+	# late/unreliably to actually repopulate before the user sees the
+	# list, so refresh earlier instead — on hover and on focus, both well
+	# before any click reaches OptionButton's own popup-building logic.
+	_option.mouse_entered.connect(_refresh_and_reselect)
+	_option.focus_entered.connect(_refresh_and_reselect)
 	add_child(_option)
 	add_focusable(_option)
 
