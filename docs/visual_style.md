@@ -164,29 +164,30 @@ No script editing needed for the common case:
 2. Press Play — fog, color grading, background and the nearest/linear
    material filter already reflect the new style, since `SettingsManager`
    reads the same setting as its default at startup.
-3. Re-run `godot --headless -s res://tools/setup_project.gd` once to also
-   bake the mipmap bias/anisotropic level into `project.godot` — these two
-   are true renderer-startup defaults, so they only take effect after a
-   (re-)run, not just from changing the Project Setting. Skip this if
-   you're only comparing styles quickly; do it before shipping so all three
-   knobs agree.
+3. Apply once to also bake the mipmap bias/anisotropic level into
+   `project.godot` — these two are true renderer-startup defaults, so they
+   only take effect after applying, not just from changing the Project
+   Setting. Either Project > Tools > "Applica impostazioni Retro Style..."
+   (no terminal needed) or `godot --headless -s
+   res://tools/setup_project.gd` — both run the same
+   `ProjectSetup.apply()` (`tools/project_setup.gd`). Skip this if you're
+   only comparing styles quickly; do it before shipping so all three knobs
+   agree.
 
 `SettingsManager.VISUAL_STYLE_SETTING` and
-`tools/setup_project.gd::VISUAL_STYLE_SETTING` both point at
-`retro_style/visual_style` — there's one value to change, not two
-constants to keep in sync.
+`ProjectSetup.VISUAL_STYLE_SETTING` both point at `retro_style/visual_style`
+— there's one value to change, not two constants to keep in sync.
 
 Force Texture Downsample/Max Texture Size/Override Fog (and its 5 fog
 fields) sit right next to Visual Style in the same Project Settings
-category and take effect immediately at Play — no `setup_project.gd`
-re-run needed for those, since `SettingsManager` reads them live rather
-than baking anything into `project.godot`.
+category and take effect immediately at Play — no apply step needed for
+those, since `SettingsManager` reads them live rather than baking anything
+into `project.godot`.
 
 Force Resolution/Forced Resolution are the exception: like the
-texture-filter fields, they only take effect after `tools/setup_project.gd`
-bakes them into `project.godot` (see
+texture-filter fields, they only take effect after applying (see
 [Resolution and texture size](#resolution-and-texture-size) above for
-why) — re-run it after changing either one.
+why) — apply again after changing either one.
 
 ## Not (yet) a player-facing setting
 

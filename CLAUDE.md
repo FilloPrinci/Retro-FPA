@@ -118,7 +118,12 @@ project to duplicate.
   res://tools/setup_project.gd`). Re-run it after changing the action/bus
   lists at the top of the file, the Visual Style or Force
   Resolution/Forced Resolution project settings (see
-  `docs/visual_style.md`), or adding a new `translations/*.csv` file.
+  `docs/visual_style.md`), or adding a new `translations/*.csv` file. Its
+  actual logic lives in `tools/project_setup.gd` (`ProjectSetup.apply()`),
+  shared with the in-editor equivalent — Project > Tools > "Applica
+  impostazioni Retro Style..." (added by `addons/retro_visual_style`) —
+  so changes made through Project Settings can be applied without a
+  terminal.
 - `tools/smoke_test.gd` — boots the persistent Main shell, starts a new game
   into the demo level, and checks the player/level/inventory came up clean
   (`godot --headless -s res://tools/smoke_test.gd`). Useful after touching
