@@ -57,7 +57,7 @@ Two things to know right away, both covered in depth in that doc:
 - **Some of it needs an apply step.** Texture filtering and anisotropic
   level are renderer-startup defaults baked into `project.godot` — after
   changing Visual Style (or Force Resolution / Max Texture Size), run
-  **Project > Tools > "Applica impostazioni Retro Style..."** once (no
+  **Project > Tools > "Apply Retro Style Settings..."** once (no
   terminal needed) so a fresh Play picks it up. Fog, color grading,
   background and Bloom apply live, no apply step needed.
 - **You can preview it without pressing Play.** Drag
@@ -134,40 +134,39 @@ Same `world_item.tscn` prefab, different `Kind`:
 2. **Kind**: `Pickupable` (this is also the prefab's default, so a fresh
    drag-in already has it).
 3. You need an `ItemData` to assign to its **Item** field — don't
-   hand-write one. Select the `WorldItem` node, open the **"Oggetti"**
+   hand-write one. Select the `WorldItem` node, open the **"Objects"**
    dock (bottom panel; if you don't see it, it's enabled by default via
-   Project Settings > Plugins > "Item Tools"), click **"Nuovo oggetto..."**
-   ("New object"). Fill in "Nome oggetto (slug)" (id, e.g. `rusty_key`),
-   "Nome visualizzato" (display name), "Descrizione" and optionally
-   "Icona", and leave **Tipo** ("Type") at "Oggetto normale" ("Plain
-   object") for something you don't equip and use (a key, a note, ...).
-   Confirm — it creates the `ItemData` `.tres` under `resources/items/`,
-   adds placeholder rows to `translations/items.csv`, and assigns itself
-   to the selected `WorldItem` automatically.
+   Project Settings > Plugins > "Item Tools"), click **"New object..."**.
+   Fill in the slug (id, e.g. `rusty_key`), display name, description and
+   optionally an icon, and leave **Type** at "Plain object" for something
+   you don't equip and use (a key, a note, ...). Confirm — it creates the
+   `ItemData` `.tres` under `resources/items/`, adds placeholder rows to
+   `translations/items.csv`, and assigns itself to the selected `WorldItem`
+   automatically.
 4. Fill in the real English/Italian text for the two translation keys it
    created (`ITEM_<ID>_NAME`/`ITEM_<ID>_DESC`) in `translations/items.csv`
    — the wizard scaffolds the rows, not the copy.
 
 Press Play, walk up, press E — the HUD shows **"[E] Take"**, the object
 disappears from the world and appears in your inventory (Tab to check).
-Click **"Valida oggetti"** ("Validate objects") in the same dock any time
-to catch duplicate/missing ids or translation keys you forgot to fill in.
+Click **"Validate objects"** in the same dock any time to catch
+duplicate/missing ids or translation keys you forgot to fill in.
 
 ## 5. A weapon: melee and ranged
 
-Same wizard, this time picking **Tipo**:
+Same wizard, this time picking **Type**:
 
-- **"Arma da mischia"** ("Melee weapon" — a knife, a pipe): scaffolds a
-  `MeleeWeaponBehavior` alongside the `ItemData` with sensible defaults
-  (damage 15, range 1.6, cooldown 0.4s) — infinite uses, no ammo.
-- **"Arma da fuoco"** ("Firearm" — a pistol, a shotgun): scaffolds a
-  `RangedWeaponBehavior` (damage 25, range 30, cooldown 0.35s) that
-  consumes an **Ammo Item** on every shot. The wizard doesn't set
-  `ammo_item` for you — create a plain ("Oggetto normale",
-  `stackable = true`) ammo `ItemData` first (e.g. `pistol_ammo`), then open
-  the ranged weapon's behavior `.tres` (under `resources/items/behaviors/`)
-  and assign it to **Ammo Item**. "Valida oggetti" flags a ranged weapon
-  with no ammo assigned, so you won't ship one by accident.
+- **"Melee weapon"** (a knife, a pipe): scaffolds a `MeleeWeaponBehavior`
+  alongside the `ItemData` with sensible defaults (damage 15, range 1.6,
+  cooldown 0.4s) — infinite uses, no ammo.
+- **"Firearm"** (a pistol, a shotgun): scaffolds a `RangedWeaponBehavior`
+  (damage 25, range 30, cooldown 0.35s) that consumes an **Ammo Item** on
+  every shot. The wizard doesn't set `ammo_item` for you — create a plain
+  ("Plain object", `stackable = true`) ammo `ItemData` first (e.g.
+  `pistol_ammo`), then open the ranged weapon's behavior `.tres` (under
+  `resources/items/behaviors/`) and assign it to **Ammo Item**. "Validate
+  objects" flags a ranged weapon with no ammo assigned, so you won't ship
+  one by accident.
 
 Place the weapon as a `Pickupable` `WorldItem` (step 4), and an ammo pickup
 too if it's ranged (a plain item works the same way — quantity on the
@@ -193,8 +192,8 @@ Drag **`core/npc/npc_body.tscn`** into your level. In the Inspector:
   character later (see `docs/blender_workflow.md`); the placeholder
   capsule/box is enough to test dialogue right now.
 
-Select it, open the **"Dialoghi"** dock, click **"Nuovo dialogo NPC..."**
-("New NPC Dialogue"). This one step scaffolds: a `DialogueData` `.tres`
+Select it, open the **"Dialogues"** dock, click **"New NPC dialogue..."**.
+This one step scaffolds: a `DialogueData` `.tres`
 under `resources/dialogues/`, an `InteractableComponent` +
 `DialogueTrigger` added as children of the selected `NpcBody`, and
 placeholder rows in `translations/dialogue.csv` for the NPC's name and its
@@ -212,9 +211,9 @@ line that doesn't exist. A choice can gate itself on a flag
 `GameManager.get_flag()`) and/or set one when picked
 (`set_flag_key`/`set_flag_value`) — the same two fields exist on a line
 too, set the moment it's shown — so you can branch a conversation on
-what the player has already done without any code. Click **"Valida
-dialoghi"** ("Validate dialogues") to catch broken `next_id`s, unreachable
-lines, or missing translation keys.
+what the player has already done without any code. Click **"Validate
+dialogues"** to catch broken `next_id`s, unreachable lines, or missing
+translation keys.
 
 Press Play, walk up to the NPC — **"[E] Talk"** — press E, the dialogue box
 opens. Navigate choices with the same movement keys you walk with (arrows
@@ -311,7 +310,7 @@ the `.translation` resources update automatically. Adding a **new** CSV
 file (a whole new domain, e.g. `translations/lore.csv`) needs one extra
 step so it actually gets registered:
 `godot --headless -s res://tools/setup_project.gd`, or Project > Tools >
-"Applica impostazioni Retro Style..." (same shared `ProjectSetup.apply()`
+"Apply Retro Style Settings..." (same shared `ProjectSetup.apply()`
 either way — see step 1).
 
 ## 10. Before you ship
@@ -321,12 +320,12 @@ either way — see step 1).
   `docs/visual_style.md` for how this interacts with UI sizing) and Force
   Texture Downsample (shrinks oversized albedo textures to match the
   retro look) if you haven't already.
-- Run **Project > Tools > "Applica impostazioni Retro Style..."** once
-  more so every renderer-startup setting (texture filter, anisotropic
-  level, forced resolution) is actually baked into `project.godot` and not
-  just sitting as an unapplied Project Setting.
-- Click **"Valida oggetti"**/**"Valida dialoghi"** one last time across the
-  whole project.
+- Run **Project > Tools > "Apply Retro Style Settings..."** once more so
+  every renderer-startup setting (texture filter, anisotropic level,
+  forced resolution) is actually baked into `project.godot` and not just
+  sitting as an unapplied Project Setting.
+- Click **"Validate objects"**/**"Validate dialogues"** one last time
+  across the whole project.
 - Swap placeholder boxes/capsules for real art — `docs/blender_workflow.md`
   for the animated-model pipeline, `docs/blender_asset_guidelines.md` for
   guidelines across every asset category.

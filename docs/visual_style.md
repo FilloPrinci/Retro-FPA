@@ -179,7 +179,7 @@ No script editing needed for the common case:
 3. Apply once to also bake the mipmap bias/anisotropic level into
    `project.godot` — these two are true renderer-startup defaults, so they
    only take effect after applying, not just from changing the Project
-   Setting. Either Project > Tools > "Applica impostazioni Retro Style..."
+   Setting. Either Project > Tools > "Apply Retro Style Settings..."
    (no terminal needed) or `godot --headless -s
    res://tools/setup_project.gd` — both run the same
    `ProjectSetup.apply()` (`tools/project_setup.gd`). Skip this if you're

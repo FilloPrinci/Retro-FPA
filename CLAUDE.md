@@ -123,10 +123,9 @@ project to duplicate.
   Resolution/Forced Resolution project settings (see
   `docs/visual_style.md`), or adding a new `translations/*.csv` file. Its
   actual logic lives in `tools/project_setup.gd` (`ProjectSetup.apply()`),
-  shared with the in-editor equivalent — Project > Tools > "Applica
-  impostazioni Retro Style..." (added by `addons/retro_visual_style`) —
-  so changes made through Project Settings can be applied without a
-  terminal.
+  shared with the in-editor equivalent — Project > Tools > "Apply Retro
+  Style Settings..." (added by `addons/retro_visual_style`) — so changes
+  made through Project Settings can be applied without a terminal.
 - `tools/smoke_test.gd` — boots the persistent Main shell, starts a new game
   into the demo level, and checks the player/level/inventory came up clean
   (`godot --headless -s res://tools/smoke_test.gd`). Useful after touching
@@ -154,7 +153,7 @@ don't care to watch it build).
 
 `addons/dialogue_tools/` is an in-editor plugin (Project Settings > Plugins)
 for authoring NPC dialogue without hand-writing `.tres`/CSV content: a
-"Dialoghi" bottom-panel dock with a **New NPC Dialogue** wizard (scaffolds a
+"Dialogues" bottom-panel dock with a **New NPC Dialogue** wizard (scaffolds a
 `DialogueData`, an `InteractableComponent` + `DialogueTrigger` on the
 selected node, and placeholder `translations/dialogue.csv` rows in one
 step — see `dialogue_scaffolder.gd`) and a **Validate dialogues** button
@@ -178,7 +177,7 @@ model/material/body_size exports as `NpcBody`. `core/world_item/world_item.tscn`
 is the same prefab shortcut as `npc_body.tscn` above (default `kind` =
 PICKUPABLE; switch it in the Inspector after dragging in if you want
 PHYSICAL). `addons/item_tools/` is the matching in-editor plugin: an
-"Oggetti" dock with a **New object** wizard (scaffolds an `ItemData` .tres
+"Objects" dock with a **New object** wizard (scaffolds an `ItemData` .tres
 — plus a `MeleeWeaponBehavior`/`RangedWeaponBehavior` .tres with sensible
 defaults for melee/ranged — and placeholder `translations/items.csv` rows;
 assigns the result straight to a selected `WorldItem`'s `item` field — see
