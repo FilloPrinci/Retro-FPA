@@ -317,6 +317,16 @@ func _downsample_if_needed(mat: BaseMaterial3D, max_size: int) -> void:
 	var image := texture.get_image()
 	if image == null:
 		return  # e.g. a texture format that can't be read back on this backend.
+	if image.is_compressed():
+		# Textures import as VRAM-compressed (S3TC/BPTC) by default — see
+		# their .import files — so get_image() above hands back a still-
+		# compressed Image. Image.resize() silently does nothing on a
+		# compressed format, so without decompressing first this whole
+		# function was a no-op regardless of max_size. The result becomes a
+		# plain uncompressed ImageTexture below either way, which is fine
+		# for this project's tiny retro texture budget.
+		if image.decompress() != OK:
+			return  # Can't decompress this format on this backend — leave as-is.
 
 	var scale := float(max_size) / maxf(size.x, size.y)
 	var new_size := Vector2i(maxi(1, roundi(size.x * scale)), maxi(1, roundi(size.y * scale)))
