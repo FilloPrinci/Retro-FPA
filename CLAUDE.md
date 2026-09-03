@@ -139,7 +139,15 @@ A placeholder NPC body needs no wizard: `core/npc/npc_body.gd` (`NpcBody`,
 `MeshInstance3D`/`CollisionShape3D` — sized like a standing person,
 resting on the floor — the moment it has none yet, live in the editor.
 Resize later via its `body_size` export; never rebuilds/resets a manual
-reposition once the children exist.
+reposition once the children exist. Prefer dragging in
+`core/npc/npc_body.tscn` instead of Create New Node when you don't need to
+watch it self-build: it's the same node with its default structure already
+saved, so the Scene dock shows its children immediately — a node built
+live by Create New Node is correct right away too (its `CollisionShape3D`
+gizmo shows instantly), but the *dock listing itself* only catches up
+after the scene is reloaded, a known Godot editor limitation of the
+self-building-in-`_ready()` pattern (harmless, but worth dodging when you
+don't care to watch it build).
 
 `addons/dialogue_tools/` is an in-editor plugin (Project Settings > Plugins)
 for authoring NPC dialogue without hand-writing `.tres`/CSV content: a
@@ -163,15 +171,27 @@ The same idea applies to world objects. `core/world_item/world_item.gd`
 PHYSICAL (a grabbable prop: `RigidBody3D` + `Grabbable`, like the demo
 Crate) and PICKUPABLE (`StaticBody3D` + `InteractableComponent` +
 `ItemPickup`) — it builds/rebuilds the right body itself, same
-model/material/body_size exports as `NpcBody`. `addons/item_tools/` is
-the matching in-editor plugin: an "Oggetti" dock with a **New object**
-wizard (scaffolds an `ItemData` .tres — plus a `MeleeWeaponBehavior`/
-`RangedWeaponBehavior` .tres with sensible defaults for melee/ranged —
-and placeholder `translations/items.csv` rows; assigns the result
-straight to a selected `WorldItem`'s `item` field — see
+model/material/body_size exports as `NpcBody`. `core/world_item/world_item.tscn`
+is the same prefab shortcut as `npc_body.tscn` above (default `kind` =
+PICKUPABLE; switch it in the Inspector after dragging in if you want
+PHYSICAL). `addons/item_tools/` is the matching in-editor plugin: an
+"Oggetti" dock with a **New object** wizard (scaffolds an `ItemData` .tres
+— plus a `MeleeWeaponBehavior`/`RangedWeaponBehavior` .tres with sensible
+defaults for melee/ranged — and placeholder `translations/items.csv` rows;
+assigns the result straight to a selected `WorldItem`'s `item` field — see
 `item_scaffolder.gd`) and a **Validate objects** button
 (`item_validator.gd` — duplicate/missing ids, text/name keys missing from
 `translations/*.csv`, a ranged weapon behavior with no `ammo_item` set).
+
+Scene transitions follow the same self-building pattern:
+`core/scene_management/scene_change_trigger.gd` (`SceneChangeTrigger`,
+`class_name` + `@tool`) builds whatever `trigger_mode` needs — an `Area3D`
+(walk into it) or a `StaticBody3D` + `InteractableComponent` (press
+"interact") — and fires `SceneManager.change_scene`
+(`mode = EXCLUSIVE`) or `SceneManager.add_scene` (`mode = ADDITIVE`) on
+`target_scene`, once. `core/scene_management/scene_change_trigger.tscn` is
+the prefab shortcut (default `trigger_mode` = AREA); either way you still
+need to set `target_scene` yourself.
 
 ## Maintenance note
 
