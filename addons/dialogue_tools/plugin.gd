@@ -1,21 +1,21 @@
 @tool
 extends EditorPlugin
 ## Dialogue Tools — everything from Project > Tools has been deliberately
-## avoided in favor of one bottom-panel dock ("Dialoghi") plus native
+## avoided in favor of one bottom-panel dock ("Dialogues") plus native
 ## Inspector widgets, so setting up a talking NPC never needs the
 ## terminal or a headless script:
 ##
 ## - The NPC body itself needs no wizard here — it's core/npc/npc_body.gd
 ##   (NpcBody), a plain node you add the same way as any other (Create New
 ##   Node > NpcBody) that builds its own boxed mesh/collision on _ready().
-## - Dock button "Nuovo dialogo NPC...": scaffolds a DialogueData .tres
+## - Dock button "New NPC dialogue...": scaffolds a DialogueData .tres
 ##   (one starting line), an InteractableComponent + DialogueTrigger under
 ##   whichever node is selected in the scene, and placeholder rows in
 ##   translations/dialogue.csv — see dialogue_scaffolder.gd.
 ## - Inspector: DialogueLine/DialogueChoice's next_id and flag fields get
 ##   dropdown widgets instead of free-text — see dialogue_id_property.gd /
 ##   dialogue_flag_property.gd, wired in via dialogue_inspector_plugin.gd.
-## - Dock button "Valida dialoghi": runs dialogue_validator.gd over every
+## - Dock button "Validate dialogues": runs dialogue_validator.gd over every
 ##   resources/dialogues/*.tres and prints the results right in the dock.
 
 const DOCK_SCENE := preload("res://addons/dialogue_tools/dialogue_dock.tscn")
@@ -30,7 +30,7 @@ var _inspector_plugin: EditorInspectorPlugin
 
 func _enter_tree() -> void:
 	_dock = DOCK_SCENE.instantiate()
-	add_control_to_bottom_panel(_dock, "Dialoghi")
+	add_control_to_bottom_panel(_dock, "Dialogues")
 	_dock.new_dialogue_requested.connect(_on_new_dialogue_requested)
 
 	_wizard = WIZARD_SCENE.instantiate()

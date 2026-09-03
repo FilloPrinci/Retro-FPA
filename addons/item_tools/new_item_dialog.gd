@@ -1,8 +1,8 @@
 @tool
 extends ConfirmationDialog
-## "Nuovo oggetto" wizard popup — open_for_node() is called by plugin.gd
+## "New object" wizard popup — open_for_node() is called by plugin.gd
 ## with whatever WorldItem is selected in the scene (or null) when
-## "Nuovo oggetto..." is pressed. Pressing the (renamed) OK button runs
+## "New object..." is pressed. Pressing the (renamed) OK button runs
 ## ItemScaffolder.create() and reports the outcome via result_ready,
 ## instead of the dock/plugin having to know anything about this dialog's
 ## internals — same pattern as Dialogue Tools' new_dialogue_dialog.gd.
@@ -25,13 +25,13 @@ var _icon_picker: EditorResourcePicker
 
 
 func _ready() -> void:
-	title = "Nuovo oggetto"
-	get_ok_button().text = "Crea"
+	title = "New object"
+	get_ok_button().text = "Create"
 	confirmed.connect(_on_confirmed)
 
-	kind_option.add_item("Oggetto normale", ItemScaffolder.WeaponKind.NONE)
-	kind_option.add_item("Arma da mischia", ItemScaffolder.WeaponKind.MELEE)
-	kind_option.add_item("Arma da fuoco", ItemScaffolder.WeaponKind.RANGED)
+	kind_option.add_item("Plain object", ItemScaffolder.WeaponKind.NONE)
+	kind_option.add_item("Melee weapon", ItemScaffolder.WeaponKind.MELEE)
+	kind_option.add_item("Firearm", ItemScaffolder.WeaponKind.RANGED)
 
 	_icon_picker = EditorResourcePicker.new()
 	_icon_picker.base_type = "Texture2D"
@@ -42,9 +42,9 @@ func _ready() -> void:
 func open_for_node(node: WorldItem) -> void:
 	_target_node = node
 	if node:
-		target_label.text = "Nodo selezionato: %s (verrà assegnato automaticamente)" % node.name
+		target_label.text = "Selected node: %s (will be assigned automatically)" % node.name
 	else:
-		target_label.text = "Nessun WorldItem selezionato — verrà creato solo il file."
+		target_label.text = "No WorldItem selected — only the file will be created."
 	slug_edit.text = ""
 	name_edit.text = ""
 	description_edit.text = ""

@@ -9,11 +9,11 @@ extends EditorPlugin
 ##   a physical prop (RigidBody3D + Grabbable) and a pickup
 ##   (StaticBody3D + InteractableComponent + ItemPickup); it builds its
 ##   own boxed placeholder mesh + collision either way.
-## - Dock button "Nuovo oggetto...": scaffolds an ItemData .tres (plus a
+## - Dock button "New object...": scaffolds an ItemData .tres (plus a
 ##   weapon behavior .tres with sensible defaults, for melee/ranged),
 ##   placeholder rows in translations/items.csv, and — if a WorldItem is
 ##   selected — assigns the result to it directly. See item_scaffolder.gd.
-## - Dock button "Valida oggetti": runs item_validator.gd over every
+## - Dock button "Validate objects": runs item_validator.gd over every
 ##   resources/items/*.tres and prints the results right in the dock.
 
 const DOCK_SCENE := preload("res://addons/item_tools/item_dock.tscn")
@@ -26,7 +26,7 @@ var _result_dialog: AcceptDialog
 
 func _enter_tree() -> void:
 	_dock = DOCK_SCENE.instantiate()
-	add_control_to_bottom_panel(_dock, "Oggetti")
+	add_control_to_bottom_panel(_dock, "Objects")
 	_dock.new_item_requested.connect(_on_new_item_requested)
 
 	_wizard = WIZARD_SCENE.instantiate()

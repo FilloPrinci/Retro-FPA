@@ -1,8 +1,8 @@
 @tool
 extends ConfirmationDialog
-## "Nuovo dialogo NPC" wizard popup — open_for_node() is called by
+## "New NPC dialogue" wizard popup — open_for_node() is called by
 ## plugin.gd with whatever node is selected in the Scene dock when
-## "Nuovo dialogo NPC..." is pressed. Pressing the (renamed) OK button
+## "New NPC dialogue..." is pressed. Pressing the (renamed) OK button
 ## runs DialogueScaffolder.create() and reports the outcome via
 ## result_ready, instead of the dock/plugin having to know anything about
 ## this dialog's internals.
@@ -17,14 +17,14 @@ var _target_node: Node = null
 
 
 func _ready() -> void:
-	title = "Nuovo dialogo NPC"
-	get_ok_button().text = "Crea"
+	title = "New NPC dialogue"
+	get_ok_button().text = "Create"
 	confirmed.connect(_on_confirmed)
 
 
 func open_for_node(node: Node) -> void:
 	_target_node = node
-	selected_node_label.text = "Nodo selezionato: %s" % (node.name if node else "(nessuno)")
+	selected_node_label.text = "Selected node: %s" % (node.name if node else "(none)")
 	slug_edit.text = ""
 	speaker_edit.text = ""
 	popup_centered()

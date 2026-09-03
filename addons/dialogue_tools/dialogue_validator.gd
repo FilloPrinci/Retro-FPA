@@ -39,19 +39,19 @@ static func _validate_file(path: String, translation_keys: Dictionary) -> Array[
 	var issues: Array[Dictionary] = []
 	var data: DialogueData = load(path)
 	if data == null:
-		issues.append(_issue("error", path, "Impossibile caricare il file."))
+		issues.append(_issue("error", path, "Couldn't load the file."))
 		return issues
 	if data.lines.is_empty():
-		issues.append(_issue("error", path, "Nessuna riga (lines) definita."))
+		issues.append(_issue("error", path, "No lines defined."))
 		return issues
 
 	var ids := {}
 	for line in data.lines:
 		if line.id.is_empty():
-			issues.append(_issue("error", path, "Una riga ha id vuoto."))
+			issues.append(_issue("error", path, "A line has an empty id."))
 			continue
 		if ids.has(line.id):
-			issues.append(_issue("error", path, "Id duplicato: '%s'." % line.id))
+			issues.append(_issue("error", path, "Duplicate id: '%s'." % line.id))
 		ids[line.id] = true
 
 	var start_id := data.start_id if not data.start_id.is_empty() else data.lines[0].id
@@ -59,27 +59,27 @@ static func _validate_file(path: String, translation_keys: Dictionary) -> Array[
 	if ids.has(start_id):
 		reached[start_id] = true
 	else:
-		issues.append(_issue("error", path, "start_id '%s' non esiste tra le righe." % start_id))
+		issues.append(_issue("error", path, "start_id '%s' doesn't exist among the lines." % start_id))
 
 	for line in data.lines:
 		_check_key(line.speaker_name_key, translation_keys, path,
-			"speaker_name_key della riga '%s'" % line.id, issues, true)
+			"speaker_name_key of line '%s'" % line.id, issues, true)
 		_check_key(line.text_key, translation_keys, path,
-			"text_key della riga '%s'" % line.id, issues, false)
+			"text_key of line '%s'" % line.id, issues, false)
 
 		if line.choices.is_empty():
 			_check_next_id(line.next_id, ids, reached, path,
-				"la riga '%s'" % line.id, issues)
+				"line '%s'" % line.id, issues)
 		for choice in line.choices:
 			_check_key(choice.text_key, translation_keys, path,
-				"text_key di una scelta sulla riga '%s'" % line.id, issues, false)
+				"text_key of a choice on line '%s'" % line.id, issues, false)
 			_check_next_id(choice.next_id, ids, reached, path,
-				"la scelta '%s' sulla riga '%s'" % [choice.text_key, line.id], issues)
+				"choice '%s' on line '%s'" % [choice.text_key, line.id], issues)
 
 	for line in data.lines:
 		if not line.id.is_empty() and not reached.has(line.id):
 			issues.append(_issue("warning", path,
-				"La riga '%s' non è mai raggiungibile da start_id ('%s')." % [line.id, start_id]))
+				"Line '%s' is never reachable from start_id ('%s')." % [line.id, start_id]))
 
 	return issues
 
@@ -90,16 +90,16 @@ static func _check_next_id(next_id: String, ids: Dictionary, reached: Dictionary
 	if ids.has(next_id):
 		reached[next_id] = true
 	else:
-		issues.append(_issue("error", path, "%s punta a next_id '%s', che non esiste." % [who, next_id]))
+		issues.append(_issue("error", path, "%s points to next_id '%s', which doesn't exist." % [who, next_id]))
 
 
 static func _check_key(key: String, translation_keys: Dictionary, path: String, label: String, issues: Array[Dictionary], allow_empty: bool) -> void:
 	if key.is_empty():
 		if not allow_empty:
-			issues.append(_issue("warning", path, "%s è vuota." % label))
+			issues.append(_issue("warning", path, "%s is empty." % label))
 		return
 	if not translation_keys.has(key):
-		issues.append(_issue("error", path, "%s ('%s') non è presente in nessun translations/*.csv." % [label, key]))
+		issues.append(_issue("error", path, "%s ('%s') isn't present in any translations/*.csv." % [label, key]))
 
 
 static func _load_translation_keys() -> Dictionary:

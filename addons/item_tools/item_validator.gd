@@ -39,13 +39,13 @@ static func _validate_file(path: String, translation_keys: Dictionary, ids: Dict
 	var issues: Array[Dictionary] = []
 	var item: ItemData = load(path)
 	if item == null:
-		issues.append(_issue("error", path, "Impossibile caricare il file."))
+		issues.append(_issue("error", path, "Couldn't load the file."))
 		return issues
 
 	if item.id.is_empty():
-		issues.append(_issue("error", path, "id vuoto."))
+		issues.append(_issue("error", path, "empty id."))
 	elif ids.has(item.id):
-		issues.append(_issue("error", path, "id duplicato: '%s' (già usato da %s)." % [item.id, ids[item.id]]))
+		issues.append(_issue("error", path, "duplicate id: '%s' (already used by %s)." % [item.id, ids[item.id]]))
 	else:
 		ids[item.id] = path.get_file()
 
@@ -55,17 +55,17 @@ static func _validate_file(path: String, translation_keys: Dictionary, ids: Dict
 	if item.equip_behavior is RangedWeaponBehavior:
 		var ranged := item.equip_behavior as RangedWeaponBehavior
 		if ranged.ammo_item == null:
-			issues.append(_issue("warning", path, "Arma da fuoco senza ammo_item assegnato sul suo behavior."))
+			issues.append(_issue("warning", path, "Firearm with no ammo_item assigned on its behavior."))
 
 	return issues
 
 
 static func _check_key(key: String, translation_keys: Dictionary, path: String, label: String, issues: Array[Dictionary]) -> void:
 	if key.is_empty():
-		issues.append(_issue("warning", path, "%s è vuota." % label))
+		issues.append(_issue("warning", path, "%s is empty." % label))
 		return
 	if not translation_keys.has(key):
-		issues.append(_issue("error", path, "%s ('%s') non è presente in nessun translations/*.csv." % [label, key]))
+		issues.append(_issue("error", path, "%s ('%s') isn't present in any translations/*.csv." % [label, key]))
 
 
 static func _load_translation_keys() -> Dictionary:

@@ -13,7 +13,7 @@ extends EditorPlugin
 ## project.godot and is read at runtime with an ordinary
 ## ProjectSettings.get_setting() call — no plugin/editor needed for that.
 ##
-## Also adds Project > Tools > "Applica impostazioni Retro Style..." —
+## Also adds Project > Tools > "Apply Retro Style Settings..." —
 ## some of these fields (texture filter, Force Resolution, and a few other
 ## things ProjectSetup.apply() bakes down alongside them) are
 ## renderer-startup-time defaults, not safe to flip at runtime, so they
@@ -55,7 +55,7 @@ const SETTINGS := [
 ]
 
 
-const APPLY_MENU_ITEM := "Applica impostazioni Retro Style..."
+const APPLY_MENU_ITEM := "Apply Retro Style Settings..."
 
 var _result_dialog: AcceptDialog
 
@@ -104,11 +104,11 @@ func _on_apply_pressed() -> void:
 	ProjectSettings.save()
 	get_editor_interface().get_resource_filesystem().scan()
 
-	_result_dialog.title = "Fatto"
+	_result_dialog.title = "Done"
 	_result_dialog.dialog_text = (
-		"Impostazioni applicate a project.godot.\n\n" +
-		"Il filtro delle texture, la risoluzione forzata e le altre " +
-		"impostazioni di avvio del renderer si vedono da una nuova " +
-		"sessione di Play (o riavviando l'editor per la sua stessa vista 3D)."
+		"Settings applied to project.godot.\n\n" +
+		"Texture filtering, forced resolution and the other renderer " +
+		"startup settings show up starting from a fresh Play session " +
+		"(or by restarting the editor, for its own 3D viewport)."
 	)
 	_result_dialog.popup_centered()

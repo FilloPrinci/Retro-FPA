@@ -28,7 +28,7 @@ func _init() -> void:
 
 	_pick_button = MenuButton.new()
 	_pick_button.text = "▾"
-	_pick_button.tooltip_text = "Scegli un flag già usato altrove"
+	_pick_button.tooltip_text = "Pick a flag already used elsewhere"
 	_pick_button.about_to_popup.connect(_populate_menu)
 	_pick_button.get_popup().id_pressed.connect(_on_flag_picked)
 	hbox.add_child(_pick_button)
@@ -42,7 +42,7 @@ func _populate_menu() -> void:
 	popup.clear()
 	var flags := _collect_known_flags()
 	if flags.is_empty():
-		popup.add_item("(nessun flag esistente)")
+		popup.add_item("(no existing flags)")
 		popup.set_item_disabled(0, true)
 		return
 	for i in flags.size():

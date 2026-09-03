@@ -19,13 +19,13 @@ const DIALOGUE_TRIGGER_SCRIPT := "res://core/dialogue/dialogue_trigger.gd"
 static func create(npc_node: Node, slug: String, speaker_display_name: String) -> Dictionary:
 	var clean_slug := slugify(slug)
 	if clean_slug.is_empty():
-		return _fail("Nome dialogo non valido (usa lettere, numeri, underscore).")
+		return _fail("Invalid dialogue name (use letters, numbers, underscore).")
 	if npc_node == null:
-		return _fail("Nessun nodo selezionato nella scena.")
+		return _fail("No node selected in the scene.")
 
 	var dialogue_path := "%s/%s.tres" % [DIALOGUES_DIR, clean_slug]
 	if FileAccess.file_exists(dialogue_path):
-		return _fail("Esiste già un dialogo '%s.tres'." % clean_slug)
+		return _fail("A dialogue '%s.tres' already exists." % clean_slug)
 
 	var slug_upper := clean_slug.to_upper()
 	var speaker_key := "NPC_%s_NAME" % slug_upper
@@ -44,7 +44,7 @@ static func create(npc_node: Node, slug: String, speaker_display_name: String) -
 		DirAccess.make_dir_recursive_absolute(DIALOGUES_DIR)
 	var save_err := ResourceSaver.save(dialogue, dialogue_path)
 	if save_err != OK:
-		return _fail("Impossibile salvare '%s' (errore %d)." % [dialogue_path, save_err])
+		return _fail("Couldn't save '%s' (error %d)." % [dialogue_path, save_err])
 
 	# Reload from disk so DialogueTrigger references the saved file by
 	# path, not the in-memory instance — same ext_resource pattern every
@@ -75,7 +75,7 @@ static func create(npc_node: Node, slug: String, speaker_display_name: String) -
 	_append_csv_row(DIALOGUE_CSV, start_text_key,
 		"TODO: %s start line" % clean_slug, "TODO: battuta iniziale di %s" % clean_slug)
 
-	return {"ok": true, "message": "Dialogo '%s' creato." % clean_slug, "dialogue_path": dialogue_path}
+	return {"ok": true, "message": "Dialogue '%s' created." % clean_slug, "dialogue_path": dialogue_path}
 
 
 ## Lowercase, [a-z0-9_] only, single underscores as separators, no

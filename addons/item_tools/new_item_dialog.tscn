@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://addons/item_tools/new_item_dialog.gd" id="1"]
 
 [node name="NewItemDialog" type="ConfirmationDialog"]
-title = "Nuovo oggetto"
+title = "New object"
 size = Vector2i(380, 240)
 script = ExtResource("1")
 
@@ -15,33 +15,33 @@ offset_bottom = 200.0
 
 [node name="TargetLabel" type="Label" parent="VBox"]
 autowrap_mode = 2
-text = "Nodo selezionato: (nessuno)"
+text = "Selected node: (none)"
 
 [node name="SlugRow" type="HBoxContainer" parent="VBox"]
 
 [node name="SlugLabel" type="Label" parent="VBox/SlugRow"]
 custom_minimum_size = Vector2(140, 0)
-text = "Nome oggetto (slug):"
+text = "Item name (slug):"
 
 [node name="SlugEdit" type="LineEdit" parent="VBox/SlugRow"]
 size_flags_horizontal = 3
-placeholder_text = "es. kitchen_knife"
+placeholder_text = "e.g. kitchen_knife"
 
 [node name="NameRow" type="HBoxContainer" parent="VBox"]
 
 [node name="NameLabel" type="Label" parent="VBox/NameRow"]
 custom_minimum_size = Vector2(140, 0)
-text = "Nome visualizzato:"
+text = "Display name:"
 
 [node name="NameEdit" type="LineEdit" parent="VBox/NameRow"]
 size_flags_horizontal = 3
-placeholder_text = "es. Coltello da Cucina"
+placeholder_text = "e.g. Kitchen Knife"
 
 [node name="DescriptionRow" type="HBoxContainer" parent="VBox"]
 
 [node name="DescriptionLabel" type="Label" parent="VBox/DescriptionRow"]
 custom_minimum_size = Vector2(140, 0)
-text = "Descrizione:"
+text = "Description:"
 
 [node name="DescriptionEdit" type="LineEdit" parent="VBox/DescriptionRow"]
 size_flags_horizontal = 3
@@ -50,13 +50,13 @@ size_flags_horizontal = 3
 
 [node name="IconLabel" type="Label" parent="VBox/IconRow"]
 custom_minimum_size = Vector2(140, 0)
-text = "Icona:"
+text = "Icon:"
 
 [node name="KindRow" type="HBoxContainer" parent="VBox"]
 
 [node name="KindLabel" type="Label" parent="VBox/KindRow"]
 custom_minimum_size = Vector2(140, 0)
-text = "Tipo:"
+text = "Type:"
 
 [node name="KindOption" type="OptionButton" parent="VBox/KindRow"]
 size_flags_horizontal = 3

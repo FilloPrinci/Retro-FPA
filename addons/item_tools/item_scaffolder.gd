@@ -4,7 +4,7 @@ extends RefCounted
 ## ItemData .tres (plus a MeleeWeaponBehavior/RangedWeaponBehavior
 ## sub-resource .tres with sensible defaults, when the chosen kind needs
 ## one), and placeholder rows in translations/items.csv for the generated
-## name/description keys. Used by the "Nuovo oggetto..." wizard — kept
+## name/description keys. Used by the "New object..." wizard — kept
 ## separate from it so the file-creation logic isn't tangled up with
 ## dialog-box UI code, same split as Dialogue Tools' DialogueScaffolder.
 
@@ -20,11 +20,11 @@ static func create(slug: String, display_name: String, description: String,
 		icon: Texture2D, weapon_kind: WeaponKind) -> Dictionary:
 	var clean_slug := slugify(slug)
 	if clean_slug.is_empty():
-		return _fail("Nome oggetto non valido (usa lettere, numeri, underscore).")
+		return _fail("Invalid item name (use letters, numbers, underscore).")
 
 	var item_path := "%s/%s.tres" % [ITEMS_DIR, clean_slug]
 	if FileAccess.file_exists(item_path):
-		return _fail("Esiste già un oggetto '%s.tres'." % clean_slug)
+		return _fail("An item '%s.tres' already exists." % clean_slug)
 
 	var slug_upper := clean_slug.to_upper()
 	var name_key := "ITEM_%s_NAME" % slug_upper
@@ -62,13 +62,13 @@ static func create(slug: String, display_name: String, description: String,
 
 		var behavior_err := ResourceSaver.save(behavior, behavior_path)
 		if behavior_err != OK:
-			return _fail("Impossibile salvare '%s' (errore %d)." % [behavior_path, behavior_err])
+			return _fail("Couldn't save '%s' (error %d)." % [behavior_path, behavior_err])
 		item.equip_behavior = load(behavior_path)
 
 	_ensure_dir(ITEMS_DIR)
 	var save_err := ResourceSaver.save(item, item_path)
 	if save_err != OK:
-		return _fail("Impossibile salvare '%s' (errore %d)." % [item_path, save_err])
+		return _fail("Couldn't save '%s' (error %d)." % [item_path, save_err])
 
 	# Reload from disk so equip_behavior (and, from the caller, anything
 	# assigning this to a WorldItem) references the saved file by path,
@@ -77,11 +77,11 @@ static func create(slug: String, display_name: String, description: String,
 	item = load(item_path)
 
 	var final_name := display_name if not display_name.is_empty() else clean_slug.capitalize()
-	var final_desc := description if not description.is_empty() else "TODO: descrizione di %s" % clean_slug
+	var final_desc := description if not description.is_empty() else "TODO: description of %s" % clean_slug
 	ItemTranslationIO.set_row(name_key, final_name, final_name, ITEMS_CSV)
 	ItemTranslationIO.set_row(desc_key, final_desc, final_desc, ITEMS_CSV)
 
-	return {"ok": true, "message": "Oggetto '%s' creato." % clean_slug, "item_path": item_path, "item": item}
+	return {"ok": true, "message": "Item '%s' created." % clean_slug, "item_path": item_path, "item": item}
 
 
 ## Lowercase, [a-z0-9_] only, single underscores as separators, no
