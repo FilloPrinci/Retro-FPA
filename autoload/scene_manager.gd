@@ -47,16 +47,17 @@ func reload_current_scene() -> void:
 	await change_scene(level_path, _spawn_id)
 
 
-## Fades out, swaps the level under CurrentLevel, places the Player on the
-## matching SpawnPoint, then fades back in.
-func change_scene(scene_path: String, spawn_id: String = "default") -> void:
+## Fades out (unless show_transition is false), swaps the level under
+## CurrentLevel, places the Player on the matching SpawnPoint, then fades
+## back in. This is the EXCLUSIVE load — see add_scene() for ADDITIVE.
+func change_scene(scene_path: String, spawn_id: String = "default", show_transition: bool = true) -> void:
 	if _is_changing_scene:
 		return
 	_is_changing_scene = true
 	_spawn_id = spawn_id
 	scene_change_started.emit(scene_path)
 
-	if _fade_overlay:
+	if show_transition and _fade_overlay:
 		await _fade_overlay.fade_out()
 
 	_clear_level()
@@ -73,11 +74,31 @@ func change_scene(scene_path: String, spawn_id: String = "default") -> void:
 	# on screen for the first moment of the reveal.
 	GameManager.state = GameManager.GameState.PLAYING
 
-	if _fade_overlay:
+	if show_transition and _fade_overlay:
 		await _fade_overlay.fade_in()
 
 	_is_changing_scene = false
 	scene_change_finished.emit(scene_path)
+
+
+## ADDITIVE load: instantiates scene_path as an extra child of
+## CurrentLevel, alongside whatever's already there — for streaming in a
+## sub-area, a bonus room, etc. Unlike change_scene(), this never touches
+## the player or clears anything, and show_transition defaults to off:
+## covering the whole screen just to quietly add something in the
+## background usually defeats the point. Returns the instantiated node.
+func add_scene(scene_path: String, show_transition: bool = false) -> Node:
+	if show_transition and _fade_overlay:
+		await _fade_overlay.fade_out()
+
+	var packed_scene: PackedScene = load(scene_path)
+	var instance := packed_scene.instantiate()
+	_current_level.add_child(instance)
+
+	if show_transition and _fade_overlay:
+		await _fade_overlay.fade_in()
+
+	return instance
 
 
 func _ensure_player_exists() -> void:
