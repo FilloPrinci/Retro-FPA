@@ -16,6 +16,16 @@ extends StaticBody3D
 ## logic attached — add InteractableComponent/DialogueTrigger the usual
 ## way (or via the "Dialoghi" dock's "Nuovo dialogo NPC..." wizard) for a
 ## talking NPC.
+##
+## Editor note: the built CollisionShape3D/MeshInstance3D are real and
+## correctly owned immediately — the box shows right away in the 3D
+## viewport — but Godot's Scene dock tree list doesn't live-track children
+## a script adds during _ready() the way it does nodes added through its
+## own UI. It won't list them until the scene is reloaded (Scene > Reload
+## Saved Scene, no need to reopen the whole project). Known Godot
+## limitation of this pattern, same on WorldItem/SceneChangeTrigger — not
+## a bug, and rarely matters since every knob that counts is an export
+## here, not something you'd need to select the built children for.
 
 ## Always drives CollisionShape3D's size. Also drives the placeholder box
 ## mesh's size while `model` below is empty.

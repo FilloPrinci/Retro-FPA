@@ -22,6 +22,17 @@ extends Node3D
 ## then stays inert — for EXCLUSIVE this doesn't matter (the trigger
 ## itself gets torn down with the rest of the old level), but it keeps
 ## ADDITIVE from adding the same scene again every time it fires.
+##
+## Editor note: the Detector is real and correctly built/owned the moment
+## you add this node — its CollisionShape3D box shows immediately in the
+## 3D viewport — but Godot's Scene dock tree list itself doesn't live-track
+## children a script adds during _ready() the way it does nodes you add
+## through its own UI. It won't list Detector/CollisionShape3D until the
+## scene is reloaded (Scene > Reload Saved Scene is enough, no need to
+## reopen the whole project). Same known Godot limitation on NpcBody/
+## WorldItem — not a bug, and nothing to do unless you actually need to
+## select those built children directly (you normally don't: every knob
+## that matters is an export on this node).
 
 enum TriggerMode { AREA, INTERACT }
 enum LoadMode { EXCLUSIVE, ADDITIVE }

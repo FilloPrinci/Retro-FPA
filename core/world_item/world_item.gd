@@ -22,6 +22,16 @@ extends Node3D
 ## itself here automatically if a WorldItem is selected when you run it)
 ## without hand-writing .tres/CSV content, same idea as the "Dialoghi"
 ## dock's NPC dialogue wizard.
+##
+## Editor note: the built Body/CollisionShape3D are real and correctly
+## owned immediately — the box shows right away in the 3D viewport — but
+## Godot's Scene dock tree list doesn't live-track children a script adds
+## during _ready() the way it does nodes added through its own UI. It
+## won't list them until the scene is reloaded (Scene > Reload Saved
+## Scene, no need to reopen the whole project). Known Godot limitation of
+## this pattern, same on NpcBody/SceneChangeTrigger — not a bug, and
+## rarely matters since every knob that counts is an export here, not
+## something you'd need to select the built children for.
 
 enum Kind { PHYSICAL, PICKUPABLE }
 
