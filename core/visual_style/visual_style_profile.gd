@@ -87,6 +87,26 @@ func apply_to_environment(env: Environment) -> void:
 	env.adjustment_saturation = adjustment_saturation
 
 
+## Applies the Bloom Retro Style Project Settings (retro_style/glow_*) to
+## `env`. Static, and deliberately NOT one of this Resource's own @export
+## fields: unlike fog/color grading, bloom isn't part of any one console's
+## "look" — it's a blanket post-process choice independent of Visual Style,
+## same reasoning as Force Texture Downsample/Force Resolution (see
+## docs/visual_style.md) — so every VisualStyleProfile gets the same glow
+## regardless of which one is active. Applies automatically to whatever's
+## bright enough in the scene (anything over glow_hdr_threshold, most
+## commonly emissive materials) — nothing per-object to wire up. Shared by
+## SettingsManager (at runtime) and core/visual_style/visual_style_preview.gd
+## (in the editor), so both apply identically with no duplicated logic.
+static func apply_glow(env: Environment) -> void:
+	env.glow_enabled = ProjectSettings.get_setting("retro_style/glow_enabled", true)
+	env.glow_intensity = ProjectSettings.get_setting("retro_style/glow_intensity", 0.6)
+	env.glow_strength = ProjectSettings.get_setting("retro_style/glow_strength", 1.0)
+	env.glow_bloom = ProjectSettings.get_setting("retro_style/glow_bloom", 0.0)
+	env.glow_hdr_threshold = ProjectSettings.get_setting("retro_style/glow_hdr_threshold", 1.0)
+	env.glow_blend_mode = ProjectSettings.get_setting("retro_style/glow_blend_mode", Environment.GLOW_BLEND_MODE_SOFTLIGHT) as Environment.GlowBlendMode
+
+
 ## Resolves this profile's texture_filter_nearest/anisotropic_filtering_level
 ## into the matching BaseMaterial3D.TextureFilter enum value. Shared by
 ## SettingsManager and the editor preview script.

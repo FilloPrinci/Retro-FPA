@@ -43,6 +43,15 @@ const SETTINGS := [
 	{"name": "retro_style/fog_density", "default": 0.02, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,0.2,0.001"},
 	{"name": "retro_style/fog_depth_begin", "default": 10.0, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,200.0,0.5"},
 	{"name": "retro_style/fog_depth_end", "default": 60.0, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,300.0,0.5"},
+	# Bloom — deliberately independent of Visual Style (applies the same
+	# regardless of which style is active, always on by default), same
+	# reasoning as Force Texture Downsample above. See docs/visual_style.md.
+	{"name": "retro_style/glow_enabled", "default": true},
+	{"name": "retro_style/glow_intensity", "default": 0.6, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,2.0,0.01"},
+	{"name": "retro_style/glow_strength", "default": 1.0, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,2.0,0.01"},
+	{"name": "retro_style/glow_bloom", "default": 0.0, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,1.0,0.01"},
+	{"name": "retro_style/glow_hdr_threshold", "default": 1.0, "hint": PROPERTY_HINT_RANGE, "hint_string": "0.0,2.0,0.01"},
+	{"name": "retro_style/glow_blend_mode", "default": Environment.GLOW_BLEND_MODE_SOFTLIGHT, "hint": PROPERTY_HINT_ENUM, "hint_string": "Additive,Screen,Softlight,Replace,Mix"},
 ]
 
 

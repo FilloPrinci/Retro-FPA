@@ -56,6 +56,8 @@ const MAX_TEXTURE_SIZE_SETTING := "retro_style/max_texture_size"
 ## values) are read inside VisualStyleProfile.apply_to_environment()
 ## instead of here — that's the single copy shared with the editor
 ## preview script, which has no SettingsManager to read constants from.
+## Same reasoning for bloom (retro_style/glow_*, always on regardless of
+## Visual Style) — read inside VisualStyleProfile.apply_glow().
 
 var master_volume: float = 1.0
 var music_volume: float = 1.0
@@ -264,6 +266,7 @@ func _apply_visual_style() -> void:
 		_world_environment.environment = env
 
 	profile.apply_to_environment(env)
+	VisualStyleProfile.apply_glow(env)
 
 
 ## Walks the live scene tree and, on every BaseMaterial3D it finds: sets

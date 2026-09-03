@@ -10,8 +10,8 @@ extends WorldEnvironment
 ## own WorldEnvironment via SettingsManager (ui/main/main.tscn) — having a
 ## second WorldEnvironment active during Play would compete with it.
 ##
-## Previews fog/ambient/background/color-grading (via its own Environment)
-## and texture_filter_nearest (patched onto materials in the edited scene,
+## Previews fog/ambient/background/color-grading/bloom (via its own
+## Environment) and texture_filter_nearest (patched onto materials in the edited scene,
 ## via BaseMaterial3D.texture_filter — a reversible, non-destructive enum,
 ## same mechanism SettingsManager uses at runtime). Deliberately does NOT
 ## preview texture downsampling: that mutates a texture's actual pixel
@@ -52,6 +52,7 @@ func _refresh() -> void:
 	if environment == null:
 		environment = Environment.new()
 	profile.apply_to_environment(environment)
+	VisualStyleProfile.apply_glow(environment)
 
 	var scene_root := get_tree().edited_scene_root
 	if scene_root:
