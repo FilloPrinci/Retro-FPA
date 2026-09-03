@@ -124,6 +124,18 @@ from each other in *when* they take effect, though:
   profile's own fog fields would otherwise be read, so it's a full swap,
   not a blend. Off by default — each style's own fog applies as documented
   in the table above.
+- **Bloom** (`retro_style/glow_enabled`, bool, default **on**) +
+  **Glow Intensity**/**Glow Strength**/**Glow Bloom**/**Glow Hdr
+  Threshold** (`retro_style/glow_*`, all `Environment.glow_*` under the
+  hood) + **Glow Blend Mode** (`retro_style/glow_blend_mode`, an
+  Additive/Screen/Softlight/Replace/Mix dropdown): unlike the other three
+  entries here, bloom is *always on regardless of which style is active* —
+  it isn't one of `VisualStyleProfile`'s own fields at all, since it isn't
+  part of any one console's "look" the way fog/color grading are. Applied
+  in `VisualStyleProfile.apply_glow()` right after the profile's own
+  fields, so every style gets the same bloom. Affects whatever's bright
+  enough in the scene automatically (anything over Hdr Threshold, most
+  commonly emissive materials) — nothing to wire up per-object.
 
 ## Resolution and fullscreen: the player-facing side
 
@@ -179,9 +191,10 @@ No script editing needed for the common case:
 — there's one value to change, not two constants to keep in sync.
 
 Force Texture Downsample/Max Texture Size/Override Fog (and its 5 fog
-fields) sit right next to Visual Style in the same Project Settings
-category and take effect immediately at Play — no apply step needed for
-those, since `SettingsManager` reads them live rather than baking anything
+fields)/Bloom (and its glow_* fields) sit right next to Visual Style in the
+same Project Settings category and take effect immediately at Play — no
+apply step needed for those, since `SettingsManager` reads them live
+rather than baking anything
 into `project.godot`.
 
 Force Resolution/Forced Resolution are the exception: like the
