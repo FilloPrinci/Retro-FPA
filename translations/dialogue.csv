@@ -6,3 +6,11 @@ DIALOGUE_DEMO_CHOICE_NO,I have to go.,Devo andare.
 DIALOGUE_DEMO_GLAD,"I'm glad to hear that. Take care out there.","Sono felice di sentirlo. Stai attento là fuori."
 DIALOGUE_DEMO_OK_BYE,Very well. Safe travels.,Va bene. Buon viaggio.
 DIALOGUE_DEMO_FAREWELL,"Farewell, then.","Allora, addio."
+NPC_HOLLOW_WATCHER_NAME,Hollow Watcher,Guardiano Vuoto
+DIALOGUE_HOLLOW_WATCHER_START,Few come this deep. Fewer still leave the same.,Pochi arrivano fin qui. Ancora meno se ne vanno uguali a prima.
+DIALOGUE_HOLLOW_WATCHER_CHOICE_WHO,Who are you?,Chi sei?
+DIALOGUE_HOLLOW_WATCHER_CHOICE_BYE,Farewell.,Addio.
+DIALOGUE_HOLLOW_WATCHER_ABOUT,I watched these halls when they still had a name. I remain because someone must.,Vegliavo queste sale quando avevano ancora un nome. Resto perché qualcuno deve farlo.
+DIALOGUE_HOLLOW_WATCHER_HUB,Is there anything else you'd ask of me?,C'è altro che vuoi chiedermi?
+DIALOGUE_HOLLOW_WATCHER_CHOICE_RUINS,You mentioned these halls — tell me of the ruins.,Hai parlato di queste sale... raccontami delle rovine.
+DIALOGUE_HOLLOW_WATCHER_RUINS,What still stands was once a refuge. What fell was never rebuilt — some doors are better left shut.,Ciò che resta in piedi un tempo era un rifugio. Ciò che è caduto non fu mai ricostruito: certe porte è meglio lasciarle chiuse.

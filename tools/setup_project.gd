@@ -1,7 +1,7 @@
 extends SceneTree
 ## One-off bootstrap script for the Retro FPA template — a thin CLI
 ## wrapper around ProjectSetup.apply() (tools/project_setup.gd), which also
-## backs the "Retro Style" plugin's "Applica impostazioni Retro Style..."
+## backs the "Retro Style" plugin's "Apply Retro Style Settings..."
 ## menu item (Project > Tools), so both paths share one canonical
 ## implementation instead of two copies that can drift apart.
 ##

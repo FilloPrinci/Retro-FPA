@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="DialogueData" format=3]
+
+[ext_resource type="Script" path="res://core/dialogue/dialogue_line.gd" id="1_fkd6j"]
+[ext_resource type="Script" path="res://core/dialogue/dialogue_choice.gd" id="2_mpo2y"]
+[ext_resource type="Script" path="res://core/dialogue/dialogue_data.gd" id="3_rpy60"]
+
+[sub_resource type="Resource" id="Resource_2wsu2"]
+script = ExtResource("2_mpo2y")
+text_key = "DIALOGUE_HOLLOW_WATCHER_CHOICE_WHO"
+next_id = "about"
+
+[sub_resource type="Resource" id="Resource_3swns"]
+script = ExtResource("2_mpo2y")
+text_key = "DIALOGUE_HOLLOW_WATCHER_CHOICE_BYE"
+
+[sub_resource type="Resource" id="Resource_2xn5j"]
+script = ExtResource("1_fkd6j")
+id = "start"
+speaker_name_key = "NPC_HOLLOW_WATCHER_NAME"
+text_key = "DIALOGUE_HOLLOW_WATCHER_START"
+choices = Array[ExtResource("2_mpo2y")]([SubResource("Resource_2wsu2"), SubResource("Resource_3swns")])
+
+[sub_resource type="Resource" id="Resource_at5uw"]
+script = ExtResource("1_fkd6j")
+id = "about"
+speaker_name_key = "NPC_HOLLOW_WATCHER_NAME"
+text_key = "DIALOGUE_HOLLOW_WATCHER_ABOUT"
+set_flag_key = "hollow_watcher_heard_about"
+next_id = "hub"
+
+[sub_resource type="Resource" id="Resource_56ewd"]
+script = ExtResource("2_mpo2y")
+text_key = "DIALOGUE_HOLLOW_WATCHER_CHOICE_RUINS"
+next_id = "ruins"
+required_flag_key = "hollow_watcher_heard_about"
+
+[sub_resource type="Resource" id="Resource_73val"]
+script = ExtResource("2_mpo2y")
+text_key = "DIALOGUE_HOLLOW_WATCHER_CHOICE_BYE"
+
+[sub_resource type="Resource" id="Resource_5a1yx"]
+script = ExtResource("1_fkd6j")
+id = "hub"
+speaker_name_key = "NPC_HOLLOW_WATCHER_NAME"
+text_key = "DIALOGUE_HOLLOW_WATCHER_HUB"
+choices = Array[ExtResource("2_mpo2y")]([SubResource("Resource_56ewd"), SubResource("Resource_73val")])
+
+[sub_resource type="Resource" id="Resource_7ssf6"]
+script = ExtResource("1_fkd6j")
+id = "ruins"
+speaker_name_key = "NPC_HOLLOW_WATCHER_NAME"
+text_key = "DIALOGUE_HOLLOW_WATCHER_RUINS"
+next_id = "hub"
+
+[resource]
+script = ExtResource("3_rpy60")
+lines = Array[ExtResource("1_fkd6j")]([SubResource("Resource_2xn5j"), SubResource("Resource_at5uw"), SubResource("Resource_5a1yx"), SubResource("Resource_7ssf6")])
+start_id = "start"

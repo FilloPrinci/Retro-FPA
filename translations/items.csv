@@ -7,3 +7,5 @@ ITEM_HANDGUN_NAME,Handgun,Pistola
 ITEM_HANDGUN_DESC,A worn handgun. Needs ammunition to fire.,Una pistola consumata dal tempo. Richiede munizioni per sparare.
 ITEM_PISTOL_AMMO_NAME,Pistol Ammo,Munizioni per Pistola
 ITEM_PISTOL_AMMO_DESC,A handful of rounds for a handgun.,Una manciata di proiettili per pistola.
+ITEM_BRASS_MEDALLION_NAME,Brass Medallion,Medaglione di Ottone
+ITEM_BRASS_MEDALLION_DESC,A tarnished medallion engraved with a watchful eye. It feels older than it looks.,Un medaglione appannato inciso con un occhio vigile. Sembra più antico di quanto sembri.

@@ -18,9 +18,9 @@ extends Node3D
 ##
 ## The ItemData itself (name/description/icon/item_type/weapon behavior)
 ## isn't authored here — assign an existing one to `item`, or use the
-## "Oggetti" dock's "Nuovo oggetto..." wizard to create one (it assigns
+## "Objects" dock's "New object..." wizard to create one (it assigns
 ## itself here automatically if a WorldItem is selected when you run it)
-## without hand-writing .tres/CSV content, same idea as the "Dialoghi"
+## without hand-writing .tres/CSV content, same idea as the "Dialogues"
 ## dock's NPC dialogue wizard.
 ##
 ## Editor note: the built Body/CollisionShape3D are real and correctly

@@ -4,7 +4,7 @@ extends RefCounted
 ## style texture-filter/window-stretch defaults, and the registered
 ## translations list — used by both tools/setup_project.gd (headless,
 ## `godot --headless -s res://tools/setup_project.gd`) and the "Retro
-## Style" plugin's "Applica impostazioni Retro Style..." menu item
+## Style" plugin's "Apply Retro Style Settings..." menu item
 ## (Project > Tools), so there's one canonical implementation instead of
 ## two copies that can drift apart.
 ##

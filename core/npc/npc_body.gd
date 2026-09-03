@@ -14,7 +14,7 @@ extends StaticBody3D
 ## reposition. Purely a shortcut for the boilerplate; nothing here is
 ## required at runtime, and there's no equip_behavior/DialogueTrigger-like
 ## logic attached — add InteractableComponent/DialogueTrigger the usual
-## way (or via the "Dialoghi" dock's "Nuovo dialogo NPC..." wizard) for a
+## way (or via the "Dialogues" dock's "New NPC dialogue..." wizard) for a
 ## talking NPC.
 ##
 ## Editor note: the built CollisionShape3D/MeshInstance3D are real and

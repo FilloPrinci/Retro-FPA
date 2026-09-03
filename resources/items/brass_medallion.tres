@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://core/inventory/item_data.gd" id="1_jqmsn"]
+
+[resource]
+script = ExtResource("1_jqmsn")
+id = "brass_medallion"
+display_name_key = "ITEM_BRASS_MEDALLION_NAME"
+description_key = "ITEM_BRASS_MEDALLION_DESC"
