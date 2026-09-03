@@ -90,12 +90,23 @@ func _rebuild_detector() -> void:
 	# up to self (assigning owner any earlier, while they only know about
 	# each other and not yet about self, fails).
 	add_child(detector)
-	# Deferred: whoever placed *this* node (the editor, or a script)
-	# assigns *its* owner right after adding it to the tree, same as we
-	# just did above for detector — but there's no guarantee that's
-	# already landed by the time our own _ready() runs (observed to race
-	# in at least one boot path). Deferring guarantees self.owner is
-	# settled before we read it, instead of silently falling back to self.
+	# Assign synchronously, same as NpcBody/WorldItem — this is what makes
+	# the Scene dock and the CollisionShape3D gizmo show the freshly built
+	# subtree immediately when the node is added live in the editor
+	# (Create New Node): the dock snapshots ownership right as node
+	# creation finishes, so a *deferred* assignment used to land one frame
+	# too late for it to notice, silently requiring a scene reload to show
+	# up (still structurally correct meanwhile, just invisible in the
+	# dock/viewport until then).
+	_own_recursive(detector)
+	# Also deferred, as a safety net: whoever placed *this* node assigns
+	# *its own* owner right after adding it to the tree, same as we just
+	# did above for detector — but there's no guarantee that's already
+	# landed by the time our own _ready() runs (observed to race in at
+	# least one boot path). The synchronous pass above already got the
+	# common editor/save-file case right; this corrects the rare case
+	# where self.owner was still unset a moment ago (which the synchronous
+	# pass would have fallen back to `self` for).
 	call_deferred("_own_recursive", detector)
 
 	_apply_size()
