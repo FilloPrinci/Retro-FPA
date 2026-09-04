@@ -127,7 +127,21 @@ void fragment() {
 	}
 
 	vec3 albedo_rgb = combine_layers(albedo1.rgb, albedo2.rgb, effective_blend, layer_blend_mode);
-	float alpha = mix(albedo1.a, albedo2.a, effective_blend);
+
+	float alpha;
+	if (layer_blend_mode == 0) {
+		// Porter-Duff "over", not a plain mix: a plain mix(albedo1.a,
+		// albedo2.a, effective_blend) drags the result below layer 1's
+		// own opacity wherever layer 2 is only partially opaque — even
+		// over a fully opaque layer 1. This keeps the result exactly as
+		// opaque as layer 1 already was wherever layer 1 is opaque,
+		// which is what "layer 2 stacked on top of layer 1" (Photoshop-
+		// style layers) actually means — layer 2's alpha only controls
+		// how much of *layer 2* shows through, never layer 1's own.
+		alpha = effective_blend + albedo1.a * (1.0 - effective_blend);
+	} else {
+		alpha = combine_layers(albedo1.a, albedo2.a, effective_blend, layer_blend_mode);
+	}
 
 	vec3 emission1 = texture(emission_texture_1, uv1).rgb * emission_color_1.rgb;
 	vec3 emission2 = texture(emission_texture_2, uv2).rgb * emission_color_2.rgb;
