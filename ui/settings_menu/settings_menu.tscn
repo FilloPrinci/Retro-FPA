@@ -126,6 +126,15 @@ min_value = 0.05
 max_value = 0.5
 step = 0.01
 
+[node name="TextSizeRow" type="HBoxContainer" parent="Panel/VBox/Tabs/General"]
+
+[node name="Label" type="Label" parent="Panel/VBox/Tabs/General/TextSizeRow"]
+custom_minimum_size = Vector2(90, 0)
+text = "UI_SETTINGS_TEXT_SIZE"
+
+[node name="OptionButton" type="OptionButton" parent="Panel/VBox/Tabs/General/TextSizeRow"]
+custom_minimum_size = Vector2(120, 0)
+
 [node name="LanguageRow" type="HBoxContainer" parent="Panel/VBox/Tabs/General"]
 
 [node name="Label" type="Label" parent="Panel/VBox/Tabs/General/LanguageRow"]

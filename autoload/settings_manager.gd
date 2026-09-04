@@ -11,6 +11,17 @@ const SECTION := "settings"
 const DEFAULT_MOUSE_SENSITIVITY := 0.15
 const DEFAULT_LOCALE := "en"
 
+## UI text size — a straight multiplier over Godot's own default Theme font
+## size (16px), applied globally by swapping in a Theme on the game window
+## (see _apply_text_scale()) rather than touching every individual Control:
+## nothing in this project overrides its own theme, so a window-level Theme
+## cascades to all of it, including anything a specific game adds later.
+const DEFAULT_TEXT_SCALE := 1.0
+const BASE_FONT_SIZE := 16
+## Curated, like RESOLUTION_CHOICES — shown as-is (percentages) in the
+## Settings menu, no translation needed for the values themselves.
+const TEXT_SCALE_CHOICES := [0.85, 1.0, 1.15, 1.3]
+
 ## Retro rendering look, applied via a VisualStyleProfile — see
 ## core/visual_style/visual_style_profile.gd and docs/visual_style.md.
 ## Always read live from the "Visual Style" Project Setting (Project >
@@ -64,6 +75,7 @@ var music_volume: float = 1.0
 var sfx_volume: float = 1.0
 var ambient_volume: float = 1.0
 var mouse_sensitivity: float = DEFAULT_MOUSE_SENSITIVITY
+var text_scale: float = DEFAULT_TEXT_SCALE
 var locale: String = DEFAULT_LOCALE
 var visual_style: VisualStyle = _get_project_default_visual_style()
 var window_resolution: Vector2i = DEFAULT_WINDOW_RESOLUTION
@@ -73,6 +85,10 @@ var fullscreen: bool = false
 ## autoloads are ready before the main scene, so apply_settings() may run
 ## once with nothing registered yet; registering re-applies immediately.
 var _world_environment: WorldEnvironment = null
+
+## Lazily created the first time _apply_text_scale() runs — see its doc
+## comment.
+var _ui_theme: Theme = null
 
 
 func _ready() -> void:
@@ -94,6 +110,7 @@ func load_settings() -> void:
 		sfx_volume = config.get_value(SECTION, "sfx_volume", sfx_volume)
 		ambient_volume = config.get_value(SECTION, "ambient_volume", ambient_volume)
 		mouse_sensitivity = config.get_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
+		text_scale = config.get_value(SECTION, "text_scale", text_scale)
 		locale = config.get_value(SECTION, "locale", locale)
 		window_resolution = config.get_value(SECTION, "window_resolution", window_resolution)
 		fullscreen = config.get_value(SECTION, "fullscreen", fullscreen)
@@ -119,6 +136,7 @@ func save_settings() -> void:
 	config.set_value(SECTION, "sfx_volume", sfx_volume)
 	config.set_value(SECTION, "ambient_volume", ambient_volume)
 	config.set_value(SECTION, "mouse_sensitivity", mouse_sensitivity)
+	config.set_value(SECTION, "text_scale", text_scale)
 	config.set_value(SECTION, "locale", locale)
 	config.set_value(SECTION, "window_resolution", window_resolution)
 	config.set_value(SECTION, "fullscreen", fullscreen)
@@ -136,6 +154,7 @@ func apply_settings() -> void:
 	visual_style = _get_project_default_visual_style()
 	_apply_visual_style()
 	_apply_fullscreen()
+	_apply_text_scale()
 	settings_changed.emit()
 
 
@@ -172,6 +191,7 @@ func reset_to_defaults() -> void:
 	sfx_volume = 1.0
 	ambient_volume = 1.0
 	mouse_sensitivity = DEFAULT_MOUSE_SENSITIVITY
+	text_scale = DEFAULT_TEXT_SCALE
 	locale = DEFAULT_LOCALE
 	window_resolution = DEFAULT_WINDOW_RESOLUTION
 	fullscreen = false
@@ -217,6 +237,24 @@ func _apply_fullscreen() -> void:
 	if window == null:
 		return  # No window in this context (e.g. a headless run).
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+
+
+## Rescales every default-themed Control's text at once: assigns a Theme
+## overriding default_font_size to the game window. Nothing in this
+## project's ui/ sets its own local theme, so Godot's normal theme
+## inheritance carries this down to every Label/Button/etc. everywhere,
+## live — no per-scene work, and it keeps applying to anything a specific
+## game adds later too. Lazily creates the Theme once, then just updates
+## its font size on every call (settings_changed can fire often — no
+## reason to allocate a new Theme resource every time).
+func _apply_text_scale() -> void:
+	var window := get_window()
+	if window == null:
+		return  # No window in this context (e.g. a headless run).
+	if _ui_theme == null:
+		_ui_theme = Theme.new()
+		window.theme = _ui_theme
+	_ui_theme.default_font_size = roundi(BASE_FONT_SIZE * text_scale)
 
 
 ## Resizes the actual window to window_resolution. Only called at startup

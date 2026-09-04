@@ -13,6 +13,7 @@ UI_SETTINGS_MUSIC_VOLUME,Music Volume,Volume Musica
 UI_SETTINGS_SFX_VOLUME,SFX Volume,Volume Effetti
 UI_SETTINGS_AMBIENT_VOLUME,Ambient Volume,Volume Ambientale
 UI_SETTINGS_MOUSE_SENSITIVITY,Mouse Sensitivity,Sensibilità Mouse
+UI_SETTINGS_TEXT_SIZE,Text Size,Dimensione Testo
 UI_SETTINGS_LANGUAGE,Language,Lingua
 UI_SETTINGS_RESOLUTION,Resolution,Risoluzione
 UI_SETTINGS_RESOLUTION_FORCED,Resolution is fixed by the current visual style.,La risoluzione è fissata dallo stile visivo attuale.
@@ -28,3 +29,5 @@ UI_INTERACT_TALK,Talk,Parla
 UI_INTERACT_OPEN,Open,Apri
 UI_INTERACT_TAKE,Take,Prendi
 UI_INTERACT_GRAB,Grab,Afferra
+UI_EQUIP,Equip,Equipaggia
+UI_UNEQUIP,Unequip,Rimuovi

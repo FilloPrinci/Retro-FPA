@@ -21,6 +21,7 @@ signal closed
 @onready var resolution_forced_label: Label = $Panel/VBox/Tabs/Video/ResolutionForcedLabel
 @onready var fullscreen_check: CheckBox = $Panel/VBox/Tabs/Video/FullscreenRow/CheckBox
 @onready var sensitivity_slider: HSlider = $Panel/VBox/Tabs/General/SensitivityRow/Slider
+@onready var text_size_option: OptionButton = $Panel/VBox/Tabs/General/TextSizeRow/OptionButton
 @onready var language_option: OptionButton = $Panel/VBox/Tabs/General/LanguageRow/OptionButton
 @onready var reset_button: Button = $Panel/VBox/ButtonRow/ResetButton
 @onready var back_button: Button = $Panel/VBox/ButtonRow/BackButton
@@ -41,6 +42,7 @@ func _ready() -> void:
 
 	_populate_language_options()
 	_populate_resolution_options()
+	_populate_text_size_options()
 	_load_from_settings()
 
 	master_slider.value_changed.connect(func(v): SettingsManager.master_volume = v; SettingsManager.save_settings())
@@ -48,6 +50,7 @@ func _ready() -> void:
 	sfx_slider.value_changed.connect(func(v): SettingsManager.sfx_volume = v; SettingsManager.save_settings())
 	ambient_slider.value_changed.connect(func(v): SettingsManager.ambient_volume = v; SettingsManager.save_settings())
 	sensitivity_slider.value_changed.connect(func(v): SettingsManager.mouse_sensitivity = v; SettingsManager.save_settings())
+	text_size_option.item_selected.connect(_on_text_size_selected)
 	language_option.item_selected.connect(_on_language_selected)
 	resolution_option.item_selected.connect(_on_resolution_selected)
 	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
@@ -83,6 +86,7 @@ func _on_visibility_changed() -> void:
 	_load_from_settings()
 	_select_current_locale()
 	_select_current_resolution()
+	_select_current_text_size()
 
 
 func set_available_locales(locales: Array[Array]) -> void:
@@ -120,6 +124,21 @@ func _select_current_resolution() -> void:
 			return
 
 
+func _populate_text_size_options() -> void:
+	text_size_option.clear()
+	for text_scale in SettingsManager.TEXT_SCALE_CHOICES:
+		text_size_option.add_item("%d%%" % roundi(text_scale * 100.0))
+	_select_current_text_size()
+
+
+func _select_current_text_size() -> void:
+	var choices := SettingsManager.TEXT_SCALE_CHOICES
+	for i in choices.size():
+		if is_equal_approx(choices[i], SettingsManager.text_scale):
+			text_size_option.select(i)
+			return
+
+
 func _load_from_settings() -> void:
 	master_slider.value = SettingsManager.master_volume
 	music_slider.value = SettingsManager.music_volume
@@ -147,6 +166,11 @@ func _on_resolution_selected(index: int) -> void:
 	SettingsManager.set_window_resolution(SettingsManager.RESOLUTION_CHOICES[index])
 
 
+func _on_text_size_selected(index: int) -> void:
+	SettingsManager.text_scale = SettingsManager.TEXT_SCALE_CHOICES[index]
+	SettingsManager.save_settings()
+
+
 func _on_fullscreen_toggled(enabled: bool) -> void:
 	SettingsManager.set_fullscreen(enabled)
 
@@ -156,6 +180,7 @@ func _on_reset_pressed() -> void:
 	_load_from_settings()
 	_select_current_locale()
 	_select_current_resolution()
+	_select_current_text_size()
 
 
 func _on_back_pressed() -> void:
