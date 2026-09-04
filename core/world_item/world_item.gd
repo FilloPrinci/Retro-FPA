@@ -347,6 +347,20 @@ func _find_mesh_instances(node: Node) -> Array[MeshInstance3D]:
 ## from a plain BaseMaterial3D source (an imported model's own material,
 ## or this node's `material` export) so switching shaders doesn't change
 ## how the object looks at rest — it only adds the rim.
+##
+## For the placeholder box specifically (model == null), also writes the
+## upgraded material back into `material` itself — the box's one surface
+## *is* what that export represents, and leaving it only as a surface
+## override on Body/MeshInstance3D would hide it behind that node's own
+## Scene dock lag, with no way to find or edit it short of digging past
+## that (this used to happen unconditionally, and was the "everything's
+## white and I can't even select the material to change it" bug: an item
+## placed with no `material` set at all got a bare default-white
+## RetroSurfaceMaterial that only ever existed on that hidden node,
+## invisible in the one place — this node's own Inspector — anyone would
+## naturally look to change it). A custom model's own per-part materials
+## have no single `material` field to mirror into, so this only applies
+## to the box.
 func _ensure_retro_material(mesh_instance: MeshInstance3D) -> void:
 	if mesh_instance.mesh == null:
 		return
@@ -364,6 +378,12 @@ func _ensure_retro_material(mesh_instance: MeshInstance3D) -> void:
 			if base_mat.emission_enabled:
 				retro.emission_color_1 = base_mat.emission
 		mesh_instance.set_surface_override_material(i, retro)
+		if model == null and mesh_instance.name == _MESH_NAME and i == 0:
+			# Setting `material` re-enters this whole call chain once more
+			# (its setter calls _apply_material() -> _apply_pickup_glow()
+			# -> this function again) — harmless: `mat is RetroSurfaceMaterial`
+			# is true on that inner pass, so it just skips straight through.
+			material = retro
 
 
 func _apply_item() -> void:
