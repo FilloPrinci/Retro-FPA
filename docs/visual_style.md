@@ -66,9 +66,13 @@ from each other in *when* they take effect, though:
   dropdown) + **Forced Resolution** (`retro_style/forced_resolution`, e.g.
   `320x240`): the preset dropdown is curated per era — PS1 (320×240), N64
   (256×224), GameCube (640×480), HD (1280×720/1920×1080) — each paired
-  with a 16:9-widened companion (same height, width recomputed for 16:9,
-  since the original console resolutions above aren't literally 4:3
-  pixels — CRTs used non-square pixels). Picking any of those writes its
+  with a 16:9-widened "Widescreen" companion in the dropdown (same
+  height, width recomputed for 16:9, since the original console
+  resolutions above aren't literally 4:3 pixels — CRTs used non-square
+  pixels; the label says "Widescreen" rather than "16:9" because a
+  literal colon in a `PROPERTY_HINT_ENUM` label corrupts the stored
+  value — see the doc comment on `ProjectSetup.FORCED_RESOLUTION_PRESETS`
+  if you ever add another preset). Picking any of those writes its
   size straight into `forced_resolution` the next time you apply (see
   below); pick **Custom...** to type any `Vector2i` into
   `forced_resolution` yourself, same as before this dropdown existed.

@@ -59,14 +59,23 @@ const FORCED_RESOLUTION_SETTING := "retro_style/forced_resolution"
 ## _resolve_forced_resolution_preset() leaves `forced_resolution` alone
 ## when it's selected, exactly the free-typed Vector2i field this used to
 ## be the only option — see docs/visual_style.md.
+##
+## No ":" anywhere in these labels — PROPERTY_HINT_ENUM's hint_string
+## format (built from this same wording in plugin.gd's
+## FORCED_RESOLUTION_PRESET_HINT) reserves ":" as the "Label:explicit_
+## value" separator, so a label with its own literal colon (this used to
+## say "16:9") gets silently misparsed into a garbage stored value
+## instead of the option's actual index — confirmed the hard way, a
+## chosen preset ended up saved as
+## retro_style/forced_resolution_preset=9398224 in project.godot.
 const FORCED_RESOLUTION_PRESET_SETTING := "retro_style/forced_resolution_preset"
 const FORCED_RESOLUTION_PRESETS := [
 	{"label": "PS1 (320x240)", "size": Vector2i(320, 240)},
-	{"label": "PS1 16:9 (427x240)", "size": Vector2i(427, 240)},
+	{"label": "PS1 Widescreen (427x240)", "size": Vector2i(427, 240)},
 	{"label": "N64 (256x224)", "size": Vector2i(256, 224)},
-	{"label": "N64 16:9 (398x224)", "size": Vector2i(398, 224)},
+	{"label": "N64 Widescreen (398x224)", "size": Vector2i(398, 224)},
 	{"label": "GameCube (640x480)", "size": Vector2i(640, 480)},
-	{"label": "GameCube 16:9 (853x480)", "size": Vector2i(853, 480)},
+	{"label": "GameCube Widescreen (853x480)", "size": Vector2i(853, 480)},
 	{"label": "HD 720p (1280x720)", "size": Vector2i(1280, 720)},
 	{"label": "HD 1080p (1920x1080)", "size": Vector2i(1920, 1080)},
 	{"label": "Custom...", "size": null},

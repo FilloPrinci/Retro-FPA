@@ -29,7 +29,13 @@ const VISUAL_STYLE_HINT := "PS1,N64,GameCube"
 ## can't build this hint_string itself: SETTINGS below is a const, and
 ## const initializers can't call a function), same as VISUAL_STYLE_HINT
 ## already is for SettingsManager.VisualStyle.
-const FORCED_RESOLUTION_PRESET_HINT := "PS1 (320x240),PS1 16:9 (427x240),N64 (256x224),N64 16:9 (398x224),GameCube (640x480),GameCube 16:9 (853x480),HD 720p (1280x720),HD 1080p (1920x1080),Custom..."
+## No ":" anywhere in these labels — PROPERTY_HINT_ENUM's hint_string
+## format reserves ":" as the "Label:explicit_value" separator, so a
+## label containing its own literal colon (this used to say "16:9") gets
+## silently misparsed into a garbage stored value instead of the option's
+## actual index. Confirmed the hard way: a chosen preset ended up saved
+## as retro_style/forced_resolution_preset=9398224 in project.godot.
+const FORCED_RESOLUTION_PRESET_HINT := "PS1 (320x240),PS1 Widescreen (427x240),N64 (256x224),N64 Widescreen (398x224),GameCube (640x480),GameCube Widescreen (853x480),HD 720p (1280x720),HD 1080p (1920x1080),Custom..."
 
 ## One entry per registered setting: name, default value, and an optional
 ## hint (enum or range — Godot infers type/widget from the default
