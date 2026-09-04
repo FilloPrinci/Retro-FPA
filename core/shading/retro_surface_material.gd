@@ -29,6 +29,12 @@ extends ShaderMaterial
 const _SHADER_PIXEL := preload("res://core/shading/retro_surface_pixel.gdshader")
 const _SHADER_VERTEX := preload("res://core/shading/retro_surface_vertex.gdshader")
 
+## Order matters — must match layer_blend_mode's hint_enum in
+## retro_surface.gdshaderinc (int uniform, no shared source of truth to
+## generate it from, same reasoning as this project's other hand-kept-
+## in-sync shader/hint pairs).
+enum LayerBlendMode { ALPHA_OVER, MULTIPLY, ADDITIVE, SUBTRACT, DIVIDE }
+
 ## Godot decides per-pixel vs per-vertex lighting at shader-compile time
 ## (render_mode vertex_lighting), not via a uniform — so this "toggle"
 ## actually swaps which of the two compiled Shader resources is assigned
@@ -105,7 +111,16 @@ func _init() -> void:
 @export var metallic_texture_2: Texture2D:
 	set(value): metallic_texture_2 = value; set_shader_parameter("metallic_texture_2", value)
 
-## 0 = layer 1 only, 1 = layer 2 only, in between mixes every channel.
+@export_group("Layer Blend")
+## How layer 2 combines onto layer 1 — the same operation applies
+## uniformly to every channel (albedo/emission/normal/smoothness/
+## metallic). Alpha Over also folds layer 2's own texture alpha into how
+## much shows through, same as compositing a transparent decal on top;
+## every other mode ignores alpha and just uses layer_blend below as a
+## plain opacity control over the operation's full-strength result.
+@export var layer_blend_mode: LayerBlendMode = LayerBlendMode.ALPHA_OVER:
+	set(value): layer_blend_mode = value; set_shader_parameter("layer_blend_mode", value)
+## 0 = layer 1 only, 1 = full strength of layer_blend_mode's operation.
 @export_range(0.0, 1.0) var layer_blend: float = 0.0:
 	set(value): layer_blend = value; set_shader_parameter("layer_blend", value)
 

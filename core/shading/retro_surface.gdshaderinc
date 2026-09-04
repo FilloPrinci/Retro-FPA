@@ -55,8 +55,16 @@ uniform float smoothness_2 : hint_range(0.0, 1.0) = 0.5;
 uniform sampler2D metallic_texture_2 : hint_default_white, filter_nearest, repeat_enable;
 uniform float metallic_2 : hint_range(0.0, 1.0) = 0.0;
 
-// 0 = layer 1 only, 1 = layer 2 only, in between linearly mixes every
-// channel (albedo/emission/normal/smoothness/metallic) between the two.
+// How layer 2 combines onto layer 1 — same operation applied uniformly
+// to every channel (albedo/emission/normal/smoothness/metallic). Alpha
+// Over (0) is the odd one out: it additionally folds layer 2's own
+// texture alpha into how much shows through, same as compositing a
+// transparent decal on top — see the effective_blend computation in
+// fragment() below. Every other mode ignores alpha entirely and just
+// uses layer_blend on its own as a plain opacity control over the
+// operation's full-strength result.
+uniform int layer_blend_mode : hint_enum("Alpha Over", "Multiply", "Additive", "Subtract", "Divide") = 0;
+// 0 = layer 1 only, 1 = full strength of layer_blend_mode's operation.
 uniform float layer_blend : hint_range(0.0, 1.0) = 0.0;
 
 uniform bool fresnel_enabled = true;
@@ -70,6 +78,37 @@ uniform float flash_strength : hint_range(0.0, 1.0) = 0.0;
 varying vec2 scroll_offset_1;
 varying vec2 scroll_offset_2;
 
+// layer_blend_mode: 0 Alpha Over, 1 Multiply, 2 Additive, 3 Subtract,
+// 4 Divide. `factor` is expected pre-combined with layer 2's alpha by
+// the caller when mode == 0 (Alpha Over) — see fragment()'s
+// effective_blend. Two overloads (vec3/float) cover every channel this
+// shader blends.
+vec3 combine_layers(vec3 base, vec3 overlay, float factor, int mode) {
+	if (mode == 1) {
+		return mix(base, base * overlay, factor);
+	} else if (mode == 2) {
+		return mix(base, base + overlay, factor);
+	} else if (mode == 3) {
+		return mix(base, base - overlay, factor);
+	} else if (mode == 4) {
+		return mix(base, base / max(overlay, vec3(0.0001)), factor);
+	}
+	return mix(base, overlay, factor); // Alpha Over (mode == 0) and fallback.
+}
+
+float combine_layers(float base, float overlay, float factor, int mode) {
+	if (mode == 1) {
+		return mix(base, base * overlay, factor);
+	} else if (mode == 2) {
+		return mix(base, base + overlay, factor);
+	} else if (mode == 3) {
+		return mix(base, base - overlay, factor);
+	} else if (mode == 4) {
+		return mix(base, base / max(overlay, 0.0001), factor);
+	}
+	return mix(base, overlay, factor);
+}
+
 void vertex() {
 	scroll_offset_1 = offset_1 + scroll_speed_1 * TIME;
 	scroll_offset_2 = offset_2 + scroll_speed_2 * TIME;
@@ -81,29 +120,36 @@ void fragment() {
 
 	vec4 albedo1 = texture(albedo_texture_1, uv1) * albedo_color_1;
 	vec4 albedo2 = texture(albedo_texture_2, uv2) * albedo_color_2;
-	vec4 albedo = mix(albedo1, albedo2, layer_blend);
+
+	float effective_blend = layer_blend;
+	if (layer_blend_mode == 0) {
+		effective_blend *= albedo2.a;
+	}
+
+	vec3 albedo_rgb = combine_layers(albedo1.rgb, albedo2.rgb, effective_blend, layer_blend_mode);
+	float alpha = mix(albedo1.a, albedo2.a, effective_blend);
 
 	vec3 emission1 = texture(emission_texture_1, uv1).rgb * emission_color_1.rgb;
 	vec3 emission2 = texture(emission_texture_2, uv2).rgb * emission_color_2.rgb;
-	vec3 layer_emission = mix(emission1, emission2, layer_blend);
+	vec3 layer_emission = combine_layers(emission1, emission2, effective_blend, layer_blend_mode);
 
 	float smooth1 = texture(smoothness_texture_1, uv1).r * smoothness_1;
 	float smooth2 = texture(smoothness_texture_2, uv2).r * smoothness_2;
-	float smoothness = mix(smooth1, smooth2, layer_blend);
+	float smoothness = combine_layers(smooth1, smooth2, effective_blend, layer_blend_mode);
 
 	float metal1 = texture(metallic_texture_1, uv1).r * metallic_1;
 	float metal2 = texture(metallic_texture_2, uv2).r * metallic_2;
-	float metallic = mix(metal1, metal2, layer_blend);
+	float metallic = combine_layers(metal1, metal2, effective_blend, layer_blend_mode);
 
 	vec3 normal1 = texture(normal_texture_1, uv1).rgb;
 	vec3 normal2 = texture(normal_texture_2, uv2).rgb;
 
-	ALBEDO = albedo.rgb;
-	ALPHA = albedo.a;
+	ALBEDO = albedo_rgb;
+	ALPHA = alpha;
 	ROUGHNESS = 1.0 - smoothness;
 	METALLIC = metallic;
-	NORMAL_MAP = mix(normal1, normal2, layer_blend);
-	NORMAL_MAP_DEPTH = mix(normal_strength_1, normal_strength_2, layer_blend);
+	NORMAL_MAP = combine_layers(normal1, normal2, effective_blend, layer_blend_mode);
+	NORMAL_MAP_DEPTH = mix(normal_strength_1, normal_strength_2, effective_blend);
 
 	float fresnel = 0.0;
 	if (fresnel_enabled || flash_strength > 0.0) {
