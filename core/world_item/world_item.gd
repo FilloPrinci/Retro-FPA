@@ -67,6 +67,23 @@ enum Kind { PHYSICAL, PICKUPABLE }
 		quantity = value
 		_apply_item()
 
+@export_group("Pickup Glow")
+## Pulses the fresnel rim (see core/shading/fresnel_flash.gd) in
+## pickup_glow_color to catch the player's eye — the visual cue that this
+## object can be picked up. Doesn't affect whether every surface under
+## Body gets switched to a RetroSurfaceMaterial below — that always
+## happens for kind == PICKUPABLE, since only that shader has a fresnel
+## rim to drive; this toggle only controls whether it's actually pulsing.
+## No-op for kind == PHYSICAL — grabbable props aren't inventory pickups.
+@export var pickup_glow_enabled: bool = true:
+	set(value):
+		pickup_glow_enabled = value
+		_apply_pickup_glow()
+@export var pickup_glow_color: Color = Color.WHITE:
+	set(value):
+		pickup_glow_color = value
+		_apply_pickup_glow()
+
 const _BODY_NAME := "Body"
 const _MESH_NAME := "MeshInstance3D"
 const _MODEL_NAME := "Model"
@@ -80,6 +97,12 @@ const _ITEM_PICKUP_SCRIPT := "res://core/inventory/item_pickup.gd"
 func _ready() -> void:
 	if not has_node(_BODY_NAME):
 		_rebuild_body()
+	else:
+		# Loaded from a saved scene — the body already exists, but the
+		# pulsing tween in _apply_pickup_glow() only starts once there's an
+		# actual running SceneTree, so it has to be (re-)applied here too,
+		# same reasoning as SceneChangeTrigger's own _ready() else-branch.
+		_apply_pickup_glow()
 
 
 ## Tears down and rebuilds the whole Body subtree for the current `kind` —
@@ -180,6 +203,8 @@ func _rebuild_visual() -> void:
 		body.add_child(mesh_instance)
 		mesh_instance.owner = owner if owner else self
 
+	_apply_pickup_glow()
+
 
 func _apply_material() -> void:
 	if model != null or not has_node(_BODY_NAME):
@@ -187,6 +212,72 @@ func _apply_material() -> void:
 	var body := get_node(_BODY_NAME)
 	if body.has_node(_MESH_NAME):
 		(body.get_node(_MESH_NAME) as MeshInstance3D).set_surface_override_material(0, material)
+	_apply_pickup_glow()
+
+
+## Pickupable items pulse a fresnel rim (pickup_glow_color, default white)
+## to signal they're something the player can pick up — see
+## core/shading/fresnel_flash.gd. Every MeshInstance3D under Body (the
+## placeholder box, or every part of a custom model) gets its surface
+## materials switched to a RetroSurfaceMaterial first if they aren't one
+## already — only that shader has a fresnel rim to drive — then gets its
+## own FresnelFlash pulsing in sync, so a multi-part model still reads as
+## one glowing object. No-op for kind == PHYSICAL: grabbable props aren't
+## inventory pickups and get no glow.
+func _apply_pickup_glow() -> void:
+	if kind != Kind.PICKUPABLE or not has_node(_BODY_NAME):
+		return
+	var body := get_node(_BODY_NAME)
+	for mesh_instance in _find_mesh_instances(body):
+		_ensure_retro_material(mesh_instance)
+		var flash := mesh_instance.get_node_or_null("FresnelFlash") as FresnelFlash
+		if pickup_glow_enabled:
+			if flash == null:
+				flash = FresnelFlash.new()
+				flash.name = "FresnelFlash"
+				flash.mesh_instance = mesh_instance
+				mesh_instance.add_child(flash)
+				flash.owner = owner if owner else self
+			# Only actually pulse once there's a real running SceneTree —
+			# the editor's own preview shouldn't sit there tweening forever.
+			if not Engine.is_editor_hint():
+				flash.pulse(pickup_glow_color, 1.2, 0.6)
+		elif flash:
+			flash.stop_pulse()
+
+
+func _find_mesh_instances(node: Node) -> Array[MeshInstance3D]:
+	var found: Array[MeshInstance3D] = []
+	if node is MeshInstance3D:
+		found.append(node)
+	for child in node.get_children():
+		found.append_array(_find_mesh_instances(child))
+	return found
+
+
+## Converts every surface on mesh_instance that isn't already a
+## RetroSurfaceMaterial to one, so _apply_pickup_glow() above has a
+## fresnel rim to drive. Carries over albedo/metallic/roughness/emission
+## from a plain BaseMaterial3D source (an imported model's own material,
+## or this node's `material` export) so switching shaders doesn't change
+## how the object looks at rest — it only adds the rim.
+func _ensure_retro_material(mesh_instance: MeshInstance3D) -> void:
+	if mesh_instance.mesh == null:
+		return
+	for i in mesh_instance.mesh.get_surface_count():
+		var mat := mesh_instance.get_active_material(i)
+		if mat is RetroSurfaceMaterial:
+			continue
+		var retro := RetroSurfaceMaterial.new()
+		if mat is BaseMaterial3D:
+			var base_mat := mat as BaseMaterial3D
+			retro.albedo_color_1 = base_mat.albedo_color
+			retro.albedo_texture_1 = base_mat.albedo_texture
+			retro.metallic_1 = base_mat.metallic
+			retro.smoothness_1 = 1.0 - base_mat.roughness
+			if base_mat.emission_enabled:
+				retro.emission_color_1 = base_mat.emission
+		mesh_instance.set_surface_override_material(i, retro)
 
 
 func _apply_item() -> void:
