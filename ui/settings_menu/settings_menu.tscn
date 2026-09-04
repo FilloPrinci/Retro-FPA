@@ -1,6 +1,28 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/settings_menu/settings_menu.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tabs"]
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
 
 [node name="SettingsMenu" type="Control"]
 visible = false
@@ -17,12 +39,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -130.0
-offset_top = -105.0
-offset_right = 130.0
-offset_bottom = 105.0
+offset_left = -138.0
+offset_top = -113.0
+offset_right = 138.0
+offset_bottom = 113.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 custom_minimum_size = Vector2(240, 0)
@@ -32,8 +55,9 @@ horizontal_alignment = 1
 text = "UI_SETTINGS_TITLE"
 
 [node name="Tabs" type="TabContainer" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 130)
+custom_minimum_size = Vector2(0, 142)
 size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_tabs")
 
 [node name="Audio" type="VBoxContainer" parent="Panel/VBox/Tabs"]
 

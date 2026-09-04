@@ -1,43 +1,63 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://d0jjn0pwky1h0"]
 
-[ext_resource type="Script" path="res://ui/main_menu/main_menu.gd" id="1"]
+[ext_resource type="Script" uid="uid://blyn2ndkje6sn" path="res://ui/main_menu/main_menu.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/settings_menu/settings_menu.tscn" id="2"]
 
-[node name="MainMenu" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+
+[node name="MainMenu" type="Control" unique_id=423473545]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+first_level_path = "res://levels/showcase/showcase_hall.tscn"
 
-[node name="Panel" type="PanelContainer" parent="."]
-anchors_preset = 8
+[node name="Panel" type="PanelContainer" parent="." unique_id=128466314]
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -120.0
-offset_top = -90.0
-offset_right = 120.0
-offset_bottom = 90.0
+offset_left = -128.0
+offset_top = -98.0
+offset_right = 128.0
+offset_bottom = 98.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=1823101432]
 custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
 
-[node name="Title" type="Label" parent="Panel/VBox"]
-horizontal_alignment = 1
+[node name="Title" type="Label" parent="Panel/VBox" unique_id=1741046504]
+layout_mode = 2
 text = "UI_MAIN_MENU_TITLE"
+horizontal_alignment = 1
 
-[node name="NewGameButton" type="Button" parent="Panel/VBox"]
+[node name="NewGameButton" type="Button" parent="Panel/VBox" unique_id=658808396]
+layout_mode = 2
 text = "UI_NEW_GAME"
 
-[node name="SettingsButton" type="Button" parent="Panel/VBox"]
+[node name="SettingsButton" type="Button" parent="Panel/VBox" unique_id=137686525]
+layout_mode = 2
 text = "UI_SETTINGS_TITLE"
 
-[node name="QuitButton" type="Button" parent="Panel/VBox"]
+[node name="QuitButton" type="Button" parent="Panel/VBox" unique_id=1835118106]
+layout_mode = 2
 text = "UI_QUIT"
 
-[node name="SettingsMenu" parent="." instance=ExtResource("2")]
+[node name="SettingsMenu" parent="." unique_id=562378751 instance=ExtResource("2")]
+anchors_preset = 0
