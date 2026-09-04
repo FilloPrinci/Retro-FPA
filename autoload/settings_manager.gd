@@ -12,23 +12,22 @@ const DEFAULT_MOUSE_SENSITIVITY := 0.15
 const DEFAULT_LOCALE := "en"
 
 ## UI text size — a straight multiplier over Godot's own default Theme font
-## size (16px), applied globally by swapping in a Theme on the game window
-## (see _apply_text_scale()) rather than touching every individual Control:
-## nothing in this project overrides its own theme, so a window-level Theme
-## cascades to all of it, including anything a specific game adds later.
+## size (16px). A Theme assigned to the game window (default_font_size,
+## even set explicitly per Control type) turned out not to reach
+## already-placed Labels/Buttons live in practice — confirmed with the
+## user, not just a headless-testing gap. _apply_text_scale() instead
+## walks the live tree and sets a hard per-instance
+## theme_override_font_sizes/font_size on every Label/Button/CheckBox/
+## OptionButton it finds, the same "walk the tree, patch the property
+## directly" approach _patch_material_recursive() already uses for 3D
+## materials below — a local override always wins regardless of any
+## theme/inheritance question, so there's nothing left to be uncertain
+## about.
 const DEFAULT_TEXT_SCALE := 1.0
 const BASE_FONT_SIZE := 16
 ## Curated, like RESOLUTION_CHOICES — shown as-is (percentages) in the
 ## Settings menu, no translation needed for the values themselves.
 const TEXT_SCALE_CHOICES := [0.5, 0.75, 1.0, 1.25, 1.5]
-## Every Control type actually used anywhere under ui/ that has its own
-## "font_size" theme property. default_font_size alone (the theme's
-## general fallback) isn't consulted by Control.get_theme_font_size()'s
-## per-type/per-property lookup unless nothing more specific is found
-## anywhere in the whole theme chain, including the engine's own default
-## project theme — setting it explicitly per type here is what actually
-## reaches already-placed Labels/Buttons/etc. reliably.
-const TEXT_SCALE_CONTROL_TYPES := ["Label", "Button", "CheckBox", "OptionButton"]
 
 ## Retro rendering look, applied via a VisualStyleProfile — see
 ## core/visual_style/visual_style_profile.gd and docs/visual_style.md.
@@ -93,10 +92,6 @@ var fullscreen: bool = false
 ## autoloads are ready before the main scene, so apply_settings() may run
 ## once with nothing registered yet; registering re-applies immediately.
 var _world_environment: WorldEnvironment = null
-
-## Lazily created the first time _apply_text_scale() runs — see its doc
-## comment.
-var _ui_theme: Theme = null
 
 
 func _ready() -> void:
@@ -247,25 +242,33 @@ func _apply_fullscreen() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 
 
-## Rescales every default-themed Control's text at once: assigns a Theme
-## overriding default_font_size to the game window. Nothing in this
-## project's ui/ sets its own local theme, so Godot's normal theme
-## inheritance carries this down to every Label/Button/etc. everywhere,
-## live — no per-scene work, and it keeps applying to anything a specific
-## game adds later too. Lazily creates the Theme once, then just updates
-## its font size on every call (settings_changed can fire often — no
-## reason to allocate a new Theme resource every time).
+## Returns the actual pixel font size for the current text_scale — shared
+## with anything that creates Controls at runtime and needs to size them
+## to match (e.g. DialogueBox's dynamically-built choice buttons; see
+## dialogue_box.gd) instead of only picking up the current scale on the
+## next settings change.
+func get_font_size() -> int:
+	return roundi(BASE_FONT_SIZE * text_scale)
+
+
+## Walks the live tree and sets a hard per-instance font size override on
+## every Label/Button/CheckBox/OptionButton it finds — see the doc comment
+## on text_scale above for why this (not a Theme) is what actually reaches
+## already-placed Controls. Re-run on every apply_settings(), so it also
+## catches anything new since the last call (a fresh menu, a level's HUD,
+## ...); harmless to repeat since it's just overwriting the same override
+## with whatever the current size is.
 func _apply_text_scale() -> void:
-	var window := get_window()
-	if window == null:
-		return  # No window in this context (e.g. a headless run).
-	if _ui_theme == null:
-		_ui_theme = Theme.new()
-		window.theme = _ui_theme
-	var size := roundi(BASE_FONT_SIZE * text_scale)
-	_ui_theme.default_font_size = size
-	for control_type in TEXT_SCALE_CONTROL_TYPES:
-		_ui_theme.set_font_size("font_size", control_type, size)
+	if not is_inside_tree():
+		return
+	_patch_text_scale_recursive(get_tree().root, get_font_size())
+
+
+func _patch_text_scale_recursive(node: Node, size: int) -> void:
+	if node is Label or node is Button or node is CheckBox or node is OptionButton:
+		node.add_theme_font_size_override("font_size", size)
+	for child in node.get_children():
+		_patch_text_scale_recursive(child, size)
 
 
 ## Resizes the actual window to window_resolution. Only called at startup
