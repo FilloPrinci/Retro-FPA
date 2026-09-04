@@ -333,14 +333,17 @@ func _apply_visual_style() -> void:
 	VisualStyleProfile.apply_glow(env)
 
 
-## Walks the live scene tree and, on every BaseMaterial3D it finds: sets
-## texture_filter, and (if the style forces it) downsamples the albedo
-## texture to max_texture_size. Mutates the shared Material/Texture
+## Walks the live scene tree and, on every material it finds: sets
+## texture_filter (BaseMaterial3D only — a ShaderMaterial's sampler
+## filter is a compile-time hint, not something patchable at runtime; see
+## RetroSurfaceMaterial's own doc comment), and (if the style forces it)
+## downsamples every texture slot to max_texture_size — albedo_texture for
+## a BaseMaterial3D, or RetroSurfaceMaterial's own several slots via its
+## apply_texture_downsample(). Mutates the shared Material/Texture
 ## Resources in place (not per-instance overrides), so a material used by
-## many MeshInstance3Ds only needs to be touched once and stays consistent —
-## this only affects the running session, never anything on disk.
-## ShaderMaterials are left alone; they don't expose texture_filter this way
-## and are out of scope (see docs/visual_style.md).
+## many MeshInstance3Ds only needs to be touched once and stays
+## consistent — this only affects the running session, never anything on
+## disk.
 func _apply_material_patches() -> void:
 	var profile: VisualStyleProfile = VISUAL_STYLE_PROFILES.get(visual_style)
 	if profile == null or not is_inside_tree():
@@ -358,44 +361,23 @@ func _patch_material_recursive(node: Node, filter: BaseMaterial3D.TextureFilter,
 	var mesh_instance := node as MeshInstance3D
 	if mesh_instance and mesh_instance.mesh:
 		for i in mesh_instance.mesh.get_surface_count():
-			var mat := mesh_instance.get_active_material(i) as BaseMaterial3D
-			if mat:
-				mat.texture_filter = filter
+			var mat := mesh_instance.get_active_material(i)
+			if mat is BaseMaterial3D:
+				var base_mat := mat as BaseMaterial3D
+				base_mat.texture_filter = filter
 				if max_texture_size > 0:
-					_downsample_if_needed(mat, max_texture_size)
+					_downsample_if_needed(base_mat, max_texture_size)
+			elif mat is RetroSurfaceMaterial and max_texture_size > 0:
+				(mat as RetroSurfaceMaterial).apply_texture_downsample(max_texture_size)
 	for child in node.get_children():
 		_patch_material_recursive(child, filter, max_texture_size)
 
 
-## Shrinks mat.albedo_texture in place if either dimension exceeds
-## max_size, preserving aspect ratio. Only albedo_texture — this project's
-## art direction is single-albedo-texture, no PBR maps (see
-## docs/blender_asset_guidelines.md), so that's the only slot that matters
-## here. Already-small textures are left untouched (this only ever
-## shrinks), so repeated calls across scene changes are cheap no-ops.
+## Shrinks mat.albedo_texture in place if it exceeds max_size — only
+## albedo_texture, since that's BaseMaterial3D's one texture slot this
+## project's art direction actually uses (single-albedo, no PBR maps; see
+## docs/blender_asset_guidelines.md). RetroSurfaceMaterial has its own
+## equivalent (apply_texture_downsample()) for its several slots — both
+## share the actual shrink logic via TextureDownsampler.
 func _downsample_if_needed(mat: BaseMaterial3D, max_size: int) -> void:
-	var texture := mat.albedo_texture
-	if texture == null:
-		return
-	var size := texture.get_size()
-	if size.x <= max_size and size.y <= max_size:
-		return
-
-	var image := texture.get_image()
-	if image == null:
-		return  # e.g. a texture format that can't be read back on this backend.
-	if image.is_compressed():
-		# Textures import as VRAM-compressed (S3TC/BPTC) by default — see
-		# their .import files — so get_image() above hands back a still-
-		# compressed Image. Image.resize() silently does nothing on a
-		# compressed format, so without decompressing first this whole
-		# function was a no-op regardless of max_size. The result becomes a
-		# plain uncompressed ImageTexture below either way, which is fine
-		# for this project's tiny retro texture budget.
-		if image.decompress() != OK:
-			return  # Can't decompress this format on this backend — leave as-is.
-
-	var scale := float(max_size) / maxf(size.x, size.y)
-	var new_size := Vector2i(maxi(1, roundi(size.x * scale)), maxi(1, roundi(size.y * scale)))
-	image.resize(new_size.x, new_size.y, Image.INTERPOLATE_NEAREST)
-	mat.albedo_texture = ImageTexture.create_from_image(image)
+	mat.albedo_texture = TextureDownsampler.shrink_if_needed(mat.albedo_texture, max_size)
