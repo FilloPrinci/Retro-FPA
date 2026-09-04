@@ -83,9 +83,10 @@ func _set_choices(choices: Array[DialogueChoice]) -> void:
 		var button := Button.new()
 		button.text = tr(choices[i].text_key)
 		# Built fresh every time a line with choices is shown, so it never
-		# got SettingsManager's usual tree-wide text scale pass — apply the
-		# current size directly instead of waiting for the next settings
-		# change to catch it.
+		# got SettingsManager's usual tree-wide font/text-scale pass — apply
+		# the current ones directly instead of waiting for the next
+		# settings change to catch it.
+		button.add_theme_font_override("font", SettingsManager.UI_FONT)
 		button.add_theme_font_size_override("font_size", SettingsManager.get_font_size())
 		button.pressed.connect(DialogueManager.choose.bind(i))
 		# Keeps mouse and keyboard selection in sync — hovering a choice

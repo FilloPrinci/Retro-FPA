@@ -29,6 +29,17 @@ const BASE_FONT_SIZE := 16
 ## Settings menu, no translation needed for the values themselves.
 const TEXT_SCALE_CHOICES := [0.5, 0.75, 1.0, 1.25, 1.5]
 
+## Project-wide UI font — replaces Godot's default (a general-purpose UI
+## face never chosen for this project on purpose; it reads as blurry at
+## the small sizes retro_style's forced low resolutions push text down
+## to) with VT323, a CRT-terminal face that stays readable that small
+## without turning into oversized blocks at the top of the text scale
+## range either. SIL OFL-licensed — see assets/fonts/VT323-OFL.txt.
+## Not a player-facing setting, just a fixed art choice, so it's applied
+## unconditionally in the same tree-walk as the font size instead of
+## living behind its own persisted var.
+const UI_FONT: FontFile = preload("res://assets/fonts/VT323-Regular.ttf")
+
 ## Retro rendering look, applied via a VisualStyleProfile — see
 ## core/visual_style/visual_style_profile.gd and docs/visual_style.md.
 ## Always read live from the "Visual Style" Project Setting (Project >
@@ -251,13 +262,13 @@ func get_font_size() -> int:
 	return roundi(BASE_FONT_SIZE * text_scale)
 
 
-## Walks the live tree and sets a hard per-instance font size override on
-## every Label/Button/CheckBox/OptionButton it finds — see the doc comment
-## on text_scale above for why this (not a Theme) is what actually reaches
-## already-placed Controls. Re-run on every apply_settings(), so it also
-## catches anything new since the last call (a fresh menu, a level's HUD,
-## ...); harmless to repeat since it's just overwriting the same override
-## with whatever the current size is.
+## Walks the live tree and sets a hard per-instance font + font size
+## override on every Label/Button/CheckBox/OptionButton it finds — see the
+## doc comment on text_scale above for why this (not a Theme) is what
+## actually reaches already-placed Controls. Re-run on every
+## apply_settings(), so it also catches anything new since the last call
+## (a fresh menu, a level's HUD, ...); harmless to repeat since it's just
+## overwriting the same overrides with the current font/size.
 func _apply_text_scale() -> void:
 	if not is_inside_tree():
 		return
@@ -266,6 +277,7 @@ func _apply_text_scale() -> void:
 
 func _patch_text_scale_recursive(node: Node, size: int) -> void:
 	if node is Label or node is Button or node is CheckBox or node is OptionButton:
+		node.add_theme_font_override("font", UI_FONT)
 		node.add_theme_font_size_override("font_size", size)
 	for child in node.get_children():
 		_patch_text_scale_recursive(child, size)
