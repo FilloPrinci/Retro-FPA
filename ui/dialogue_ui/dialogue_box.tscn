@@ -28,8 +28,12 @@ grow_vertical = 0
 [node name="SpeakerLabel" type="Label" parent="Panel/VBox"]
 visible = false
 
-[node name="TextLabel" type="Label" parent="Panel/VBox"]
+[node name="TextScroll" type="ScrollContainer" parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 60)
+horizontal_scroll_mode = 0
+
+[node name="TextLabel" type="Label" parent="Panel/VBox/TextScroll"]
+size_flags_horizontal = 3
 autowrap_mode = 2
 
 [node name="Choices" type="VBoxContainer" parent="Panel/VBox"]

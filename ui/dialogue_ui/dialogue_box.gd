@@ -10,7 +10,8 @@ extends Control
 ## world, nothing dialogue-specific to learn.
 
 @onready var speaker_label: Label = $Panel/VBox/SpeakerLabel
-@onready var text_label: Label = $Panel/VBox/TextLabel
+@onready var text_scroll: ScrollContainer = $Panel/VBox/TextScroll
+@onready var text_label: Label = $Panel/VBox/TextScroll/TextLabel
 @onready var choices_box: VBoxContainer = $Panel/VBox/Choices
 @onready var continue_prompt: Button = $Panel/VBox/ContinuePrompt
 
@@ -52,6 +53,10 @@ func _on_line_changed(speaker_name_key: String, text_key: String) -> void:
 	speaker_label.text = tr(speaker_name_key)
 	speaker_label.visible = not speaker_name_key.is_empty()
 	text_label.text = tr(text_key)
+	# A long line that doesn't fit shows a scrollbar (see TextScroll in the
+	# scene) rather than silently overflowing the panel — always start a
+	# new line scrolled to the top, not wherever the previous one left it.
+	text_scroll.scroll_vertical = 0
 	_set_choices([])
 
 
