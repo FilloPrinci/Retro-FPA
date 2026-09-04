@@ -50,9 +50,16 @@ func reload_current_scene() -> void:
 ## Fades out (unless show_transition is false), swaps the level under
 ## CurrentLevel, places the Player on the matching SpawnPoint, then fades
 ## back in. This is the EXCLUSIVE load — see add_scene() for ADDITIVE.
-func change_scene(scene_path: String, spawn_id: String = "default", show_transition: bool = true) -> void:
+##
+## Returns false without doing anything if a change is already in
+## progress, true once this one has fully completed — SceneChangeTrigger
+## relies on this to know whether its one-shot actually fired, rather
+## than burning it on a call that got silently dropped (e.g. two
+## triggers reachable close enough together that the second fires while
+## the first's transition is still playing out).
+func change_scene(scene_path: String, spawn_id: String = "default", show_transition: bool = true) -> bool:
 	if _is_changing_scene:
-		return
+		return false
 	_is_changing_scene = true
 	_spawn_id = spawn_id
 	scene_change_started.emit(scene_path)
@@ -79,6 +86,7 @@ func change_scene(scene_path: String, spawn_id: String = "default", show_transit
 
 	_is_changing_scene = false
 	scene_change_finished.emit(scene_path)
+	return true
 
 
 ## ADDITIVE load: instantiates scene_path as an extra child of

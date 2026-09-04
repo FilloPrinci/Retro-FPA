@@ -76,6 +76,17 @@ var _triggered := false
 func _ready() -> void:
 	if not has_node(_DETECTOR_NAME):
 		_rebuild_detector()
+	else:
+		# A trigger loaded from a saved scene already has its Detector —
+		# _rebuild_detector() (and the signal connection it makes) never
+		# runs for it. Signal.connect() calls made in code like that
+		# don't reliably survive being saved to a scene and reloaded, so
+		# without this the trigger silently never fires again once
+		# placed, saved and reopened (or just played for real — the
+		# normal case for anything actually shipped in a level). Re-run
+		# the connection every time, idempotently, so a loaded trigger is
+		# exactly as reliable as a freshly-built one.
+		_connect_detector_signals()
 
 
 ## Tears down and rebuilds the detector subtree for the current
@@ -121,6 +132,29 @@ func _rebuild_detector() -> void:
 	call_deferred("_own_recursive", detector)
 
 	_apply_size()
+	_connect_detector_signals()
+
+
+## Connects the detector's fire signal — Area3D.body_entered for AREA,
+## InteractableComponent.interacted for INTERACT. Called both right after
+## a fresh build (here) and from _ready() when the detector already
+## existed (loaded from a saved scene) — see _ready()'s doc comment for
+## why the latter is necessary. is_connected() guards make it safe to
+## call from both places without ever double-connecting.
+func _connect_detector_signals() -> void:
+	if not has_node(_DETECTOR_NAME):
+		return
+	var detector := get_node(_DETECTOR_NAME)
+
+	if trigger_mode == TriggerMode.AREA:
+		var area := detector as Area3D
+		if area and not area.body_entered.is_connected(_on_area_body_entered):
+			area.body_entered.connect(_on_area_body_entered)
+	else:
+		if detector.has_node("InteractableComponent"):
+			var interactable := detector.get_node("InteractableComponent")
+			if not interactable.interacted.is_connected(_on_interacted):
+				interactable.interacted.connect(_on_interacted)
 
 
 func _own_recursive(node: Node) -> void:
@@ -137,7 +171,6 @@ func _build_area_detector() -> Area3D:
 	collision.shape = BoxShape3D.new()
 	area.add_child(collision)
 
-	area.body_entered.connect(_on_area_body_entered)
 	return area
 
 
@@ -154,7 +187,6 @@ func _build_interact_detector() -> StaticBody3D:
 	interactable.set_script(load(_INTERACTABLE_SCRIPT))
 	interactable.set("prompt_text_key", "UI_INTERACT_OPEN")
 	body.add_child(interactable)
-	interactable.interacted.connect(_on_interacted)
 
 	return body
 
@@ -180,15 +212,21 @@ func _on_interacted(_interactor: Node) -> void:
 	_fire()
 
 
+## Async: EXCLUSIVE awaits SceneManager.change_scene() so _triggered is
+## only set once the load actually went through — see its doc comment on
+## why that matters. ADDITIVE has no equivalent busy-guard on the
+## SceneManager side, so it stays fire-and-forget.
 func _fire() -> void:
 	if _triggered:
 		return
 	if target_scene.is_empty():
 		push_warning("SceneChangeTrigger '%s' fired with no target_scene assigned." % name)
 		return
-	_triggered = true
 
 	if mode == LoadMode.EXCLUSIVE:
-		SceneManager.change_scene(target_scene, target_spawn_id, show_transition)
+		if not await SceneManager.change_scene(target_scene, target_spawn_id, show_transition):
+			return  # SceneManager was already mid-transition — try again later.
+		_triggered = true
 	else:
+		_triggered = true
 		SceneManager.add_scene(target_scene, show_transition)

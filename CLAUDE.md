@@ -60,7 +60,7 @@ Registration order matters (see Project Settings > Autoload):
 | `AudioManager` | Bus-based sound playback | `play_sfx_2d`/`play_sfx_3d`, `play_music`/`stop_music`, `play_ambient` |
 | `InventoryManager` | Slot-based inventory + equip state | `add_item`/`remove_item`/`has_item`, `equip_slot`/`unequip`, `inventory_changed`/`item_equipped` signals |
 | `DialogueManager` | Custom lightweight dialogue runner | `start_dialogue`, `advance`, `choose`, `end_dialogue`, `line_changed`/`choices_presented`/`dialogue_ended` signals |
-| `SceneManager` | Level loading + game lifecycle | `register_main`, `start_new_game`, `change_scene` (exclusive: replaces `CurrentLevel`, places the player), `add_scene` (additive: instantiates alongside whatever's loaded, doesn't touch the player), `return_to_main_menu`, `scene_change_started`/`finished` signals |
+| `SceneManager` | Level loading + game lifecycle | `register_main`, `start_new_game`, `change_scene` (exclusive: replaces `CurrentLevel`, places the player; returns `bool` — `false` without doing anything if a change is already in progress, so a caller like `SceneChangeTrigger` knows not to treat a rejected call as done), `add_scene` (additive: instantiates alongside whatever's loaded, doesn't touch the player), `return_to_main_menu`, `scene_change_started`/`finished` signals |
 
 No separate event bus: the signals on these autoloads already are the
 decoupled communication channel.
