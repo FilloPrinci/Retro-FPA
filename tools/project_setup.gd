@@ -46,6 +46,31 @@ const VISUAL_STYLE_PROFILE_PATHS := [
 ## Resolution/Forced Resolution.
 const FORCE_RESOLUTION_SETTING := "retro_style/force_resolution"
 const FORCED_RESOLUTION_SETTING := "retro_style/forced_resolution"
+## Curated Forced Resolution choices — Project Settings > Retro Style >
+## Forced Resolution Preset (a dropdown; the hint string that builds it
+## lives in addons/retro_visual_style/plugin.gd's SETTINGS, hand-kept in
+## the same order as this array, same as VISUAL_STYLE_HINT already is for
+## VisualStyle). Each retro entry keeps its era's actual vertical
+## resolution and pairs it with a 16:9-widened companion — same height,
+## width recomputed for 16:9 — rather than that era's real (often
+## non-4:3, since CRT consoles used non-square pixels) horizontal
+## resolution. HD's two entries are already 16:9, so they don't get a
+## separate widened pair. "Custom..." (size = null) is the escape hatch:
+## _resolve_forced_resolution_preset() leaves `forced_resolution` alone
+## when it's selected, exactly the free-typed Vector2i field this used to
+## be the only option — see docs/visual_style.md.
+const FORCED_RESOLUTION_PRESET_SETTING := "retro_style/forced_resolution_preset"
+const FORCED_RESOLUTION_PRESETS := [
+	{"label": "PS1 (320x240)", "size": Vector2i(320, 240)},
+	{"label": "PS1 16:9 (427x240)", "size": Vector2i(427, 240)},
+	{"label": "N64 (256x224)", "size": Vector2i(256, 224)},
+	{"label": "N64 16:9 (398x224)", "size": Vector2i(398, 224)},
+	{"label": "GameCube (640x480)", "size": Vector2i(640, 480)},
+	{"label": "GameCube 16:9 (853x480)", "size": Vector2i(853, 480)},
+	{"label": "HD 720p (1280x720)", "size": Vector2i(1280, 720)},
+	{"label": "HD 1080p (1920x1080)", "size": Vector2i(1920, 1080)},
+	{"label": "Custom...", "size": null},
+]
 ## Real starting window size when Force Resolution is on — otherwise the
 ## window would start as a literal 320x240 (or whatever's forced) box
 ## before SettingsManager resizes it on the first frame. Keep in sync with
@@ -148,9 +173,25 @@ static func _setup_rendering_defaults() -> void:
 	ProjectSettings.set_setting("rendering/textures/default_filters/texture_mipmap_bias", profile.mipmap_bias)
 
 
+## If a curated preset (anything but "Custom...") is selected, writes its
+## size into retro_style/forced_resolution — so that field always reflects
+## the chosen preset once applied. Leaves it untouched on "Custom...",
+## which is the whole point of that entry: pick it to go back to typing a
+## resolution into forced_resolution by hand.
+static func _resolve_forced_resolution_preset() -> void:
+	var preset_index: int = ProjectSettings.get_setting(FORCED_RESOLUTION_PRESET_SETTING, 0)
+	if preset_index < 0 or preset_index >= FORCED_RESOLUTION_PRESETS.size():
+		push_warning("[ProjectSetup] '%s' is out of range (%d); leaving forced_resolution as-is." % [FORCED_RESOLUTION_PRESET_SETTING, preset_index])
+		return
+	var size = FORCED_RESOLUTION_PRESETS[preset_index]["size"]
+	if size != null:
+		ProjectSettings.set_setting(FORCED_RESOLUTION_SETTING, size)
+
+
 ## Bakes Force Resolution into project.godot's display/window/stretch/*
 ## settings — see the doc comment on FORCE_RESOLUTION_SETTING above.
 static func _setup_window_stretch() -> void:
+	_resolve_forced_resolution_preset()
 	var force_resolution: bool = ProjectSettings.get_setting(FORCE_RESOLUTION_SETTING, false)
 	if force_resolution:
 		var forced: Vector2i = ProjectSettings.get_setting(FORCED_RESOLUTION_SETTING, Vector2i(320, 240))

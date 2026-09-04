@@ -24,6 +24,12 @@ extends EditorPlugin
 
 ## Order matters: index 0/1/2 must match SettingsManager.VisualStyle.
 const VISUAL_STYLE_HINT := "PS1,N64,GameCube"
+## Order matters: must match tools/project_setup.gd's
+## ProjectSetup.FORCED_RESOLUTION_PRESETS — hand-kept in sync (that array
+## can't build this hint_string itself: SETTINGS below is a const, and
+## const initializers can't call a function), same as VISUAL_STYLE_HINT
+## already is for SettingsManager.VisualStyle.
+const FORCED_RESOLUTION_PRESET_HINT := "PS1 (320x240),PS1 16:9 (427x240),N64 (256x224),N64 16:9 (398x224),GameCube (640x480),GameCube 16:9 (853x480),HD 720p (1280x720),HD 1080p (1920x1080),Custom..."
 
 ## One entry per registered setting: name, default value, and an optional
 ## hint (enum or range — Godot infers type/widget from the default
@@ -32,6 +38,7 @@ const VISUAL_STYLE_HINT := "PS1,N64,GameCube"
 const SETTINGS := [
 	{"name": "retro_style/visual_style", "default": 0, "hint": PROPERTY_HINT_ENUM, "hint_string": VISUAL_STYLE_HINT},
 	{"name": "retro_style/force_resolution", "default": false},
+	{"name": "retro_style/forced_resolution_preset", "default": 0, "hint": PROPERTY_HINT_ENUM, "hint_string": FORCED_RESOLUTION_PRESET_HINT},
 	{"name": "retro_style/forced_resolution", "default": Vector2i(320, 240)},
 	{"name": "retro_style/force_texture_downsample", "default": false},
 	{"name": "retro_style/max_texture_size", "default": 256, "hint": PROPERTY_HINT_ENUM, "hint_string": "16:16,32:32,64:64,128:128,256:256,512:512"},

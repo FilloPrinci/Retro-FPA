@@ -62,7 +62,17 @@ own Project Settings (Retro Style category, added by the same
 from each other in *when* they take effect, though:
 
 - **Force Resolution** (`retro_style/force_resolution`, bool) +
-  **Forced Resolution** (`retro_style/forced_resolution`, e.g. `320x240`):
+  **Forced Resolution Preset** (`retro_style/forced_resolution_preset`, a
+  dropdown) + **Forced Resolution** (`retro_style/forced_resolution`, e.g.
+  `320x240`): the preset dropdown is curated per era — PS1 (320×240), N64
+  (256×224), GameCube (640×480), HD (1280×720/1920×1080) — each paired
+  with a 16:9-widened companion (same height, width recomputed for 16:9,
+  since the original console resolutions above aren't literally 4:3
+  pixels — CRTs used non-square pixels). Picking any of those writes its
+  size straight into `forced_resolution` the next time you apply (see
+  below); pick **Custom...** to type any `Vector2i` into
+  `forced_resolution` yourself, same as before this dropdown existed.
+  Whichever way it got there, `forced_resolution` is what actually gets
   baked into `project.godot` by
   `tools/setup_project.gd::_setup_window_stretch()` — as
   `display/window/stretch/mode = "viewport"`,
@@ -89,17 +99,20 @@ from each other in *when* they take effect, though:
   `CanvasLayer`/`Control` (HUD, menus, dialogue box) gets laid out within
   that same low-res canvas. There's no separate "crisp UI over blocky 3D"
   split here (that would need routing the 3D scene through its own
-  `SubViewport`, which this template doesn't do — a bigger change than
-  seemed worth it for the default 320×240/640×480 profiles). Practically:
-  every menu panel's fixed pixel size needs to comfortably fit within the
-  *smallest* resolution you expect to force. The existing menus
-  (`ui/main_menu`, `ui/pause_menu`, `ui/settings_menu`, `ui/inventory_ui`)
-  are all sized to fit inside 320×240 with margin to spare;
-  `settings_menu.tscn` additionally splits its content across
-  Audio/Video/General tabs (a `TabContainer`) rather than one long list, so
-  only one category's rows need to fit at a time. Keep both in mind for any
-  new menu: size it to fit 320×240, and reach for tabs or a
-  `ScrollContainer` if the content genuinely can't be trimmed to fit.
+  `SubViewport`, which this template doesn't do). Practically: every menu
+  panel's fixed pixel size needs to comfortably fit within the *smallest*
+  resolution you expect to force. The existing menus (`ui/main_menu`,
+  `ui/pause_menu`, `ui/settings_menu`, `ui/inventory_ui`) were sized to
+  fit inside 320×240 with margin to spare, back when that was the only
+  forced resolution this template shipped with — **not re-verified
+  against the N64 preset's 256×224** (the shortest option now on the
+  dropdown; `ui/settings_menu` in particular is close enough to 320×240's
+  own limit that 224px of height is worth actually checking before
+  shipping with that preset). `settings_menu.tscn` splits its content
+  across Audio/Video/General tabs (a `TabContainer`) rather than one long
+  list, so only one category's rows need to fit at a time — reach for the
+  same trick, or a `ScrollContainer`, on any new menu that doesn't fit the
+  resolution you're targeting.
 - **Force Texture Downsample** (`retro_style/force_texture_downsample`,
   bool) + **Max Texture Size** (`retro_style/max_texture_size`, a
   128/256/512 dropdown): when the toggle is on, every
