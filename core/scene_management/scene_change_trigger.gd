@@ -33,6 +33,28 @@ extends Node3D
 ## WorldItem — not a bug, and nothing to do unless you actually need to
 ## select those built children directly (you normally don't: every knob
 ## that matters is an export on this node).
+##
+## core/scene_management/scene_change_trigger.tscn is a prefab shortcut for
+## dragging this in instead of using Create New Node — but, unlike
+## NpcBody's/WorldItem's own prefab shortcuts, it deliberately does NOT
+## bake a pre-built Detector into the saved file: it's a bare script-only
+## root, built fresh in _ready() exactly like the Create New Node case (so
+## dragging it in hits the same one-reload Scene dock lag described above,
+## instead of avoiding it). This is required, not just simpler: AREA and
+## INTERACT need genuinely different node classes for Detector (Area3D vs
+## StaticBody3D), and Godot has no way to record "delete a node baked into
+## an instanced sub-scene" from a plain script — a baked default Detector
+## plus a trigger_mode override on the instance produces two independent,
+## same-named "Detector" nodes once saved (the packed one, still supplied
+## by the instance reference, and this node's own local override), which
+## Godot's loader detects as a name collision on the next load and
+## silently renames one. Confirmed by reproducing the full save-reload
+## cycle with PackedScene.pack() + ResourceSaver.save() (the same calls
+## the editor's own Save Scene uses) — see _rebuild_detector()'s own doc
+## comment for the defenses kept in the script regardless (retiring rather
+## than freeing an inherited node, and only reacting to trigger_mode once
+## the node is actually ready) as extra insurance for any equivalent
+## situation this reasoning didn't anticipate.
 
 enum TriggerMode { AREA, INTERACT }
 enum LoadMode { EXCLUSIVE, ADDITIVE }
@@ -40,7 +62,25 @@ enum LoadMode { EXCLUSIVE, ADDITIVE }
 @export var trigger_mode: TriggerMode = TriggerMode.AREA:
 	set(value):
 		trigger_mode = value
-		if has_node(_DETECTOR_NAME):
+		# Skip while the node isn't ready yet — see _ready()'s own
+		# reconciliation pass, which is what actually handles a saved
+		# scene being loaded. Reacting here too during that window is not
+		# just redundant: while loading, this setter can fire more than
+		# once with a transient/stale detector state (once for the
+		# exported property's own *declared default*, before whatever the
+		# saved scene's node list actually provides has finished being
+		# applied on top) — and the node list can *already* be
+		# independently instantiating the correct Detector regardless of
+		# this setter, since it's an ordinary override node recorded in
+		# the file, not something only this script knows how to create.
+		# Rebuilding (and, worse, retiring — see _rebuild_detector()) in
+		# response to every one of those calls raced a second, unrelated,
+		# already-correct Detector into existence in practice — confirmed
+		# by instrumenting this setter and reproducing a full save+reload
+		# cycle. Once the node is ready, this reacts normally: a genuine
+		# Inspector edit or runtime change to trigger_mode still rebuilds
+		# immediately, same as before.
+		if is_node_ready() and has_node(_DETECTOR_NAME) and not _detector_matches_mode():
 			_rebuild_detector()
 
 ## Size of the detector's box collider (the Area3D's or the door's).
@@ -76,6 +116,14 @@ var _triggered := false
 func _ready() -> void:
 	if not has_node(_DETECTOR_NAME):
 		_rebuild_detector()
+	elif not _detector_matches_mode():
+		# Reconcile once, now that the whole node is stable — see the
+		# trigger_mode setter's doc comment for why this, rather than
+		# reacting to every individual setter call during loading, is
+		# what actually handles a saved scene whose Detector doesn't
+		# match trigger_mode (an instanced prefab with trigger_mode
+		# overridden away from its baked default).
+		_rebuild_detector()
 	else:
 		# A trigger loaded from a saved scene already has its Detector —
 		# _rebuild_detector() (and the signal connection it makes) never
@@ -96,8 +144,28 @@ func _ready() -> void:
 func _rebuild_detector() -> void:
 	if has_node(_DETECTOR_NAME):
 		var existing := get_node(_DETECTOR_NAME)
-		remove_child(existing)
-		existing.free()
+		if existing.owner == self:
+			# This Detector came baked into a packed scene this node is an
+			# *instance* of (scene_change_trigger.tscn — see its own doc
+			# comment), and trigger_mode was changed on this specific
+			# instance to something that needs a different node class.
+			# Freeing it here and adding a same-named replacement would
+			# leave two "Detector" nodes at the same path once saved — the
+			# packed one (still referenced via the instance) and this
+			# node's own local override — which Godot's loader detects as
+			# a name collision on the next load and silently renames one
+			# (confirmed by reproducing it with PackedScene.pack() +
+			# ResourceSaver.save(), the same calls the editor's own Save
+			# Scene uses). Renaming it out of the way instead — rather
+			# than freeing it — makes Godot's own scene-diffing correctly
+			# drop it from what actually gets saved, verified the same
+			# way. Only disable its collision/monitoring here as a safety
+			# net for the remainder of *this* editor session, since the
+			# live tree still holds it until the scene is next saved.
+			_retire_inherited_node(existing)
+		else:
+			remove_child(existing)
+			existing.free()
 
 	var detector: Node3D
 	if trigger_mode == TriggerMode.AREA:
@@ -155,6 +223,34 @@ func _connect_detector_signals() -> void:
 			var interactable := detector.get_node("InteractableComponent")
 			if not interactable.interacted.is_connected(_on_interacted):
 				interactable.interacted.connect(_on_interacted)
+
+
+## Renames a Detector inherited from the packed scene out of the way (see
+## _rebuild_detector()'s comment for why this is renamed rather than
+## freed) and disables whatever makes it active, so it sits as harmless,
+## invisible dead weight for the rest of this editor session instead of
+## blocking movement or double-firing this trigger.
+func _retire_inherited_node(node: Node) -> void:
+	node.name = "%s_Inherited_Unused" % _DETECTOR_NAME
+	if node is Node3D:
+		(node as Node3D).visible = false
+	for child in node.get_children():
+		if child is CollisionShape3D:
+			(child as CollisionShape3D).set_deferred("disabled", true)
+	if node is Area3D:
+		(node as Area3D).set_deferred("monitoring", false)
+		(node as Area3D).set_deferred("monitorable", false)
+
+
+## Whether the current Detector node's class already matches what
+## trigger_mode needs — see the trigger_mode setter's doc comment for why
+## this check exists (guards against rebuilding, and worse retiring, a
+## Detector that's already correct).
+func _detector_matches_mode() -> bool:
+	var existing := get_node(_DETECTOR_NAME)
+	if trigger_mode == TriggerMode.AREA:
+		return existing is Area3D
+	return existing is StaticBody3D
 
 
 func _own_recursive(node: Node) -> void:

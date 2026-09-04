@@ -1,19 +1,22 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene format=3 uid="uid://b485gw78uudoh"]
 
-[ext_resource type="Script" path="res://core/scene_management/spawn_point.gd" id="1_spawn"]
+[ext_resource type="Script" uid="uid://b1typu1u3s10f" path="res://core/scene_management/spawn_point.gd" id="1_spawn"]
 [ext_resource type="PackedScene" path="res://core/visual_style/visual_style_preview.tscn" id="2_preview"]
-[ext_resource type="Texture2D" path="res://assets/textures/test_grid.png" id="3_grid"]
-[ext_resource type="Texture2D" path="res://assets/textures/test_checkerboard.png" id="4_checker"]
-[ext_resource type="PackedScene" path="res://core/world_item/world_item.tscn" id="5_worlditem"]
+[ext_resource type="Texture2D" uid="uid://cgokrcv4nrqk8" path="res://assets/textures/test_grid.png" id="3_grid"]
+[ext_resource type="Texture2D" uid="uid://bw1poeiom3q5o" path="res://assets/textures/test_checkerboard.png" id="4_checker"]
+[ext_resource type="Material" uid="uid://ch6ysr845mn2r" path="res://assets/materials/retro_noise_scroll.tres" id="5_cgtar"]
+[ext_resource type="PackedScene" uid="uid://cusy6ffk4iyt1" path="res://core/world_item/world_item.tscn" id="5_worlditem"]
 [ext_resource type="Resource" path="res://resources/items/brass_medallion.tres" id="6_medallion"]
 [ext_resource type="Resource" path="res://resources/items/handgun.tres" id="7_handgun"]
 [ext_resource type="Resource" path="res://resources/items/pistol_ammo.tres" id="8_ammo"]
 [ext_resource type="PackedScene" path="res://core/npc/npc_body.tscn" id="9_npcbody"]
-[ext_resource type="Script" path="res://core/interaction/interactable_component.gd" id="10_interactable"]
-[ext_resource type="Script" path="res://core/dialogue/dialogue_trigger.gd" id="11_dialoguetrigger"]
-[ext_resource type="Resource" path="res://resources/dialogues/hollow_watcher.tres" id="12_dialogue"]
-[ext_resource type="Script" path="res://core/combat/damageable_component.gd" id="13_damageable"]
+[ext_resource type="Script" uid="uid://d0oulaw4kbueg" path="res://core/interaction/interactable_component.gd" id="10_interactable"]
+[ext_resource type="Script" uid="uid://bdrrc1kxdo1i3" path="res://core/dialogue/dialogue_trigger.gd" id="11_dialoguetrigger"]
+[ext_resource type="Resource" uid="uid://dld01atfn2dfx" path="res://resources/dialogues/hollow_watcher.tres" id="12_dialogue"]
+[ext_resource type="Script" uid="uid://cnnmsxvhyo6oh" path="res://core/combat/damageable_component.gd" id="13_damageable"]
 [ext_resource type="PackedScene" path="res://core/scene_management/scene_change_trigger.tscn" id="14_trigger"]
+
+[sub_resource type="Environment" id="Environment_vn3te"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(20, 0.4, 20)
@@ -25,12 +28,6 @@ uv1_scale = Vector3(10, 10, 10)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(20, 0.4, 20)
-
-[sub_resource type="BoxMesh" id="BoxMesh_crate"]
-size = Vector3(0.6, 0.6, 0.6)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crate"]
-albedo_color = Color(0.55, 0.38, 0.2, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_dummy"]
 radius = 0.35
@@ -62,109 +59,122 @@ albedo_color = Color(1, 0.85, 0.4, 1)
 emission_enabled = true
 emission = Color(1.6, 1.3, 0.5, 1)
 
-[node name="ShowcaseHall" type="Node3D"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_ogh1d"]
+size = Vector3(1, 2, 1)
 
-[node name="VisualStylePreview" parent="." instance=ExtResource("2_preview")]
+[node name="ShowcaseHall" type="Node3D" unique_id=59404357]
 
-[node name="Floor" type="StaticBody3D" parent="."]
+[node name="VisualStylePreview" parent="." unique_id=2141528376 instance=ExtResource("2_preview")]
+environment = SubResource("Environment_vn3te")
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1607711411]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=1550529624]
 mesh = SubResource("BoxMesh_floor")
 surface_material_override/0 = SubResource("StandardMaterial3D_floor")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1789855542]
 shape = SubResource("BoxShape3D_floor")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=979234807]
 transform = Transform3D(0.8660254, 0.35355338, -0.35355338, 0, 0.70710677, 0.70710677, 0.5, -0.6123724, 0.6123724, 0, 5, 0)
 
-[node name="SpawnPoint" type="Node3D" parent="."]
+[node name="SpawnPoint" type="Node3D" parent="." unique_id=1836969115]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 8)
 script = ExtResource("1_spawn")
 
-[node name="Crate" parent="." instance=ExtResource("5_worlditem")]
+[node name="Crate" parent="." unique_id=1343437633 instance=ExtResource("5_worlditem")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0.3, 5)
 kind = 0
 body_size = Vector3(0.6, 0.6, 0.6)
-material = SubResource("StandardMaterial3D_crate")
+material = ExtResource("5_cgtar")
 
-[node name="MedallionPickup" parent="." instance=ExtResource("5_worlditem")]
+[node name="MedallionPickup" parent="." unique_id=623476692 instance=ExtResource("5_worlditem")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.15, 5)
 item = ExtResource("6_medallion")
 
-[node name="HandgunPickup" parent="." instance=ExtResource("5_worlditem")]
+[node name="HandgunPickup" parent="." unique_id=1035975822 instance=ExtResource("5_worlditem")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0.15, 0)
 item = ExtResource("7_handgun")
 
-[node name="AmmoPickup" parent="." instance=ExtResource("5_worlditem")]
+[node name="AmmoPickup" parent="." unique_id=594012793 instance=ExtResource("5_worlditem")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.5, 0.15, 0)
 item = ExtResource("8_ammo")
 quantity = 12
 
-[node name="HollowWatcher" parent="." instance=ExtResource("9_npcbody")]
+[node name="HollowWatcher" parent="." unique_id=234473158 instance=ExtResource("9_npcbody")]
 transform = Transform3D(-0.4067366, 0, -0.9135455, 0, 1, 0, 0.9135455, 0, -0.4067366, 6, 0.85, -2)
 
-[node name="InteractableComponent" type="Node" parent="HollowWatcher"]
+[node name="InteractableComponent" type="Node" parent="HollowWatcher" unique_id=1964622660]
 script = ExtResource("10_interactable")
 prompt_text_key = "UI_INTERACT_TALK"
 
-[node name="DialogueTrigger" type="Node" parent="HollowWatcher"]
+[node name="DialogueTrigger" type="Node" parent="HollowWatcher" unique_id=1627001055]
 script = ExtResource("11_dialoguetrigger")
 dialogue = ExtResource("12_dialogue")
 
-[node name="TrainingDummy" type="StaticBody3D" parent="."]
+[node name="TrainingDummy" type="StaticBody3D" parent="." unique_id=309706290]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, -3)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TrainingDummy"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TrainingDummy" unique_id=1439678262]
 mesh = SubResource("CapsuleMesh_dummy")
 surface_material_override/0 = SubResource("StandardMaterial3D_dummy")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="TrainingDummy"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TrainingDummy" unique_id=1346174332]
 shape = SubResource("CapsuleShape3D_dummy")
 
-[node name="DamageableComponent" type="Node" parent="TrainingDummy"]
+[node name="DamageableComponent" type="Node" parent="TrainingDummy" unique_id=1421092664]
 script = ExtResource("13_damageable")
 max_health = 50.0
 
-[node name="VaultDoorFrameLeft" type="StaticBody3D" parent="."]
+[node name="VaultDoorFrameLeft" type="StaticBody3D" parent="." unique_id=1452178682]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 1.25, -9)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="VaultDoorFrameLeft"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="VaultDoorFrameLeft" unique_id=909321467]
 mesh = SubResource("BoxMesh_pillar")
 surface_material_override/0 = SubResource("StandardMaterial3D_pillar")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="VaultDoorFrameLeft"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="VaultDoorFrameLeft" unique_id=1313502669]
 shape = SubResource("BoxShape3D_pillar")
 
-[node name="VaultDoorFrameRight" type="StaticBody3D" parent="."]
+[node name="VaultDoorFrameRight" type="StaticBody3D" parent="." unique_id=1347174177]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 1.25, -9)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="VaultDoorFrameRight"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="VaultDoorFrameRight" unique_id=321338027]
 mesh = SubResource("BoxMesh_pillar")
 surface_material_override/0 = SubResource("StandardMaterial3D_pillar")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="VaultDoorFrameRight"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="VaultDoorFrameRight" unique_id=1525645346]
 shape = SubResource("BoxShape3D_pillar")
 
-[node name="VaultBeacon" type="MeshInstance3D" parent="."]
+[node name="VaultBeacon" type="MeshInstance3D" parent="." unique_id=1369089026]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, -9)
 mesh = SubResource("SphereMesh_beacon")
 surface_material_override/0 = SubResource("StandardMaterial3D_beacon")
 
-[node name="VaultDoor" parent="." instance=ExtResource("14_trigger")]
+[node name="VaultDoor" parent="." unique_id=1495107822 instance=ExtResource("14_trigger")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -9)
 trigger_mode = 1
 target_scene = "res://levels/showcase/showcase_vault.tscn"
 
-[node name="AnnexBeacon" type="MeshInstance3D" parent="."]
+[node name="Detector" type="StaticBody3D" parent="VaultDoor" unique_id=826246768]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="VaultDoor/Detector" unique_id=958294318]
+shape = SubResource("BoxShape3D_ogh1d")
+
+[node name="InteractableComponent" type="Node" parent="VaultDoor/Detector" unique_id=948012786]
+script = ExtResource("10_interactable")
+prompt_text_key = "UI_INTERACT_OPEN"
+
+[node name="AnnexBeacon" type="MeshInstance3D" parent="." unique_id=775055881]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.4, -8)
 mesh = SubResource("SphereMesh_beacon")
 surface_material_override/0 = SubResource("StandardMaterial3D_beacon")
 
-[node name="AnnexThreshold" parent="." instance=ExtResource("14_trigger")]
+[node name="AnnexThreshold" parent="." unique_id=1316851758 instance=ExtResource("14_trigger")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, -8)
 detector_size = Vector3(2, 2, 2)
-mode = 1
 target_scene = "res://levels/showcase/showcase_annex.tscn"
+mode = 1
 show_transition = false

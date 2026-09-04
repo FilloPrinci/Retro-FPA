@@ -2,13 +2,5 @@
 
 [ext_resource type="Script" path="res://core/scene_management/scene_change_trigger.gd" id="1_pdqjr"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_meno3"]
-size = Vector3(1, 2, 1)
-
 [node name="SceneChangeTrigger" type="Node3D" unique_id=294393059]
 script = ExtResource("1_pdqjr")
-
-[node name="Detector" type="Area3D" parent="." unique_id=1380489233]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Detector" unique_id=932909554]
-shape = SubResource("BoxShape3D_meno3")

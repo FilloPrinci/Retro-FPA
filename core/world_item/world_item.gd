@@ -32,13 +32,58 @@ extends Node3D
 ## this pattern, same on NpcBody/SceneChangeTrigger — not a bug, and
 ## rarely matters since every knob that counts is an export here, not
 ## something you'd need to select the built children for.
+##
+## core/world_item/world_item.tscn is a prefab shortcut for dragging this
+## in instead of using Create New Node — but, unlike NpcBody's own prefab
+## shortcut, it deliberately does NOT bake a pre-built Body into the saved
+## file: it's a bare script-only root, built fresh in _ready() exactly
+## like the Create New Node case (so dragging it in hits the same
+## one-reload Scene dock lag described above, instead of avoiding it).
+## This is required, not just simpler: PHYSICAL and PICKUPABLE need
+## genuinely different node classes for Body (RigidBody3D vs StaticBody3D),
+## and Godot has no way to record "delete a node baked into an instanced
+## sub-scene" from a plain script — a baked default Body plus a `kind`
+## override on the instance produces two independent, same-named "Body"
+## nodes once saved (the packed one, still supplied by the instance
+## reference, and this node's own local override), which Godot's loader
+## detects as a name collision on the next load and silently renames one
+## (this is exactly what happened to a Crate placed via this prefab with
+## kind overridden to PHYSICAL — confirmed by reproducing the full
+## save-reload cycle with PackedScene.pack() + ResourceSaver.save(), the
+## same calls the editor's own Save Scene uses). See _rebuild_body()'s own
+## doc comment for the defenses kept in the script regardless (retiring
+## rather than freeing an inherited node, and only reacting to `kind` once
+## the node is actually ready) as extra insurance for any equivalent
+## situation this reasoning didn't anticipate. NpcBody isn't vulnerable to
+## this — its model/placeholder swap uses two different node *names*
+## ("Model" vs "MeshInstance3D") instead of changing one name's class, so
+## there's nothing for two same-named sources to collide over.
 
 enum Kind { PHYSICAL, PICKUPABLE }
 
 @export var kind: Kind = Kind.PICKUPABLE:
 	set(value):
 		kind = value
-		if has_node(_BODY_NAME):
+		# Skip while the node isn't ready yet — see _ready()'s own
+		# reconciliation pass, which is what actually handles a saved
+		# scene being loaded. Reacting here too during that window is not
+		# just redundant: while loading, this setter can fire more than
+		# once with a transient/stale body state (once for the exported
+		# property's own *declared default*, before whatever the saved
+		# scene's node list actually provides has finished being applied
+		# on top) — and the node list can *already* be independently
+		# instantiating the correct Body regardless of this setter, since
+		# it's an ordinary override node recorded in the file, not
+		# something only this script knows how to create. Rebuilding
+		# (and, worse, retiring — see _rebuild_body()) in response to
+		# every one of those calls races a second, unrelated,
+		# already-correct Body into existence in practice (confirmed by
+		# reproducing a full save+reload cycle on the equivalent bug in
+		# SceneChangeTrigger — see its own doc comment there). Once the
+		# node is ready, this reacts normally: a genuine Inspector edit or
+		# runtime change to kind still rebuilds immediately, same as
+		# before.
+		if is_node_ready() and has_node(_BODY_NAME) and not _body_matches_kind():
 			_rebuild_body()
 
 @export var body_size: Vector3 = Vector3(0.3, 0.3, 0.3):
@@ -97,6 +142,14 @@ const _ITEM_PICKUP_SCRIPT := "res://core/inventory/item_pickup.gd"
 func _ready() -> void:
 	if not has_node(_BODY_NAME):
 		_rebuild_body()
+	elif not _body_matches_kind():
+		# Reconcile once, now that the whole node is stable — see the
+		# `kind` setter's doc comment for why this, rather than reacting
+		# to every individual setter call during loading, is what
+		# actually handles a saved scene whose Body doesn't match kind
+		# (an instanced prefab with kind overridden away from its baked
+		# default).
+		_rebuild_body()
 	else:
 		# Loaded from a saved scene — the body already exists, but the
 		# pulsing tween in _apply_pickup_glow() only starts once there's an
@@ -112,8 +165,30 @@ func _ready() -> void:
 func _rebuild_body() -> void:
 	if has_node(_BODY_NAME):
 		var existing := get_node(_BODY_NAME)
-		remove_child(existing)
-		existing.free()
+		if existing.owner == self:
+			# This Body came baked into a packed scene this node is an
+			# *instance* of (world_item.tscn), and `kind` was changed on
+			# this specific instance to something that needs a different
+			# node class (RigidBody3D vs StaticBody3D). Freeing it here and
+			# adding a same-named replacement would leave two "Body" nodes
+			# at the same path once saved — the packed one (still
+			# referenced via the instance) and this node's own local
+			# override — which Godot's loader detects as a name collision
+			# on the next load and silently renames one. See
+			# SceneChangeTrigger._rebuild_detector()'s doc comment for the
+			# same bug reproduced and fixed the same way there: renaming
+			# it out of the way, instead of freeing it, makes Godot's own
+			# scene-diffing correctly drop it from what actually gets
+			# saved.
+			existing.name = "%s_Inherited_Unused" % _BODY_NAME
+			if existing is CollisionObject3D:
+				(existing as CollisionObject3D).set_deferred("collision_layer", 0)
+				(existing as CollisionObject3D).set_deferred("collision_mask", 0)
+			if existing is Node3D:
+				(existing as Node3D).visible = false
+		else:
+			remove_child(existing)
+			existing.free()
 
 	var body: PhysicsBody3D = RigidBody3D.new() if kind == Kind.PHYSICAL else StaticBody3D.new()
 	body.name = _BODY_NAME
@@ -159,6 +234,17 @@ func _rebuild_body() -> void:
 	_apply_size()
 	_rebuild_visual()
 	_apply_item()
+
+
+## Whether the current Body node's class already matches what `kind`
+## needs — see the `kind` setter's doc comment for why this check exists
+## (guards against rebuilding, and worse retiring, a Body that's already
+## correct).
+func _body_matches_kind() -> bool:
+	var existing := get_node(_BODY_NAME)
+	if kind == Kind.PHYSICAL:
+		return existing is RigidBody3D
+	return existing is StaticBody3D
 
 
 func _apply_size() -> void:

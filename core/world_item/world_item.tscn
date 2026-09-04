@@ -1,29 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cusy6ffk4iyt1"]
 
-[ext_resource type="Script" path="res://core/world_item/world_item.gd" id="1_i8wru"]
-[ext_resource type="Script" path="res://core/interaction/interactable_component.gd" id="2_1ou0i"]
-[ext_resource type="Script" path="res://core/inventory/item_pickup.gd" id="3_rnf0x"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_bjyvl"]
-size = Vector3(0.3, 0.3, 0.3)
-
-[sub_resource type="BoxMesh" id="BoxMesh_tnnj5"]
-size = Vector3(0.3, 0.3, 0.3)
+[ext_resource type="Script" uid="uid://dnm2ilygo23lr" path="res://core/world_item/world_item.gd" id="1_i8wru"]
 
 [node name="WorldItem" type="Node3D" unique_id=1938385460]
 script = ExtResource("1_i8wru")
-
-[node name="Body" type="StaticBody3D" parent="." unique_id=840890586]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Body" unique_id=362906795]
-shape = SubResource("BoxShape3D_bjyvl")
-
-[node name="InteractableComponent" type="Node" parent="Body" unique_id=113181654]
-script = ExtResource("2_1ou0i")
-prompt_text_key = "UI_INTERACT_TAKE"
-
-[node name="ItemPickup" type="Node" parent="Body" unique_id=1793833684]
-script = ExtResource("3_rnf0x")
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Body" unique_id=1854425884]
-mesh = SubResource("BoxMesh_tnnj5")
