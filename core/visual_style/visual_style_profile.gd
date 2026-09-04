@@ -1,3 +1,4 @@
+@tool
 class_name VisualStyleProfile
 extends Resource
 ## Data-driven definition of a retro rendering look (PS1 / N64 / GameCube).
@@ -11,6 +12,16 @@ extends Resource
 ##   WorldEnvironment at runtime via apply_settings() — Environment
 ##   properties are safe to change at any time.
 ## See docs/visual_style.md for the reasoning behind each field.
+##
+## @tool: core/visual_style/visual_style_preview.gd (itself @tool) calls
+## apply_to_environment()/resolve_texture_filter() on a preloaded instance
+## of this every frame while editing, to live-preview the active style in
+## the editor's 3D viewport. Without @tool, a non-tool Resource script's
+## methods aren't callable from editor code at all — Godot loads it as a
+## "placeholder" instance instead (properties only, no methods), which is
+## exactly the "Attempt to call a method on a placeholder instance" error
+## this fixes. Purely data + pure functions, no _ready()/_process() of its
+## own, so there's no gameplay-code-running-in-editor risk to weigh here.
 
 @export_group("Texture filtering")
 ## Global default sampler filter: true = nearest (crisp, blocky — PS1),
