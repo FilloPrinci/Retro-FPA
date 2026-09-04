@@ -20,7 +20,15 @@ const DEFAULT_TEXT_SCALE := 1.0
 const BASE_FONT_SIZE := 16
 ## Curated, like RESOLUTION_CHOICES — shown as-is (percentages) in the
 ## Settings menu, no translation needed for the values themselves.
-const TEXT_SCALE_CHOICES := [0.85, 1.0, 1.15, 1.3]
+const TEXT_SCALE_CHOICES := [0.5, 0.75, 1.0, 1.25, 1.5]
+## Every Control type actually used anywhere under ui/ that has its own
+## "font_size" theme property. default_font_size alone (the theme's
+## general fallback) isn't consulted by Control.get_theme_font_size()'s
+## per-type/per-property lookup unless nothing more specific is found
+## anywhere in the whole theme chain, including the engine's own default
+## project theme — setting it explicitly per type here is what actually
+## reaches already-placed Labels/Buttons/etc. reliably.
+const TEXT_SCALE_CONTROL_TYPES := ["Label", "Button", "CheckBox", "OptionButton"]
 
 ## Retro rendering look, applied via a VisualStyleProfile — see
 ## core/visual_style/visual_style_profile.gd and docs/visual_style.md.
@@ -254,7 +262,10 @@ func _apply_text_scale() -> void:
 	if _ui_theme == null:
 		_ui_theme = Theme.new()
 		window.theme = _ui_theme
-	_ui_theme.default_font_size = roundi(BASE_FONT_SIZE * text_scale)
+	var size := roundi(BASE_FONT_SIZE * text_scale)
+	_ui_theme.default_font_size = size
+	for control_type in TEXT_SCALE_CONTROL_TYPES:
+		_ui_theme.set_font_size("font_size", control_type, size)
 
 
 ## Resizes the actual window to window_resolution. Only called at startup
