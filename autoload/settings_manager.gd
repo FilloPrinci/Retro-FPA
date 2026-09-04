@@ -333,12 +333,14 @@ func _apply_visual_style() -> void:
 	VisualStyleProfile.apply_glow(env)
 
 
-## Walks the live scene tree and, on every material it finds: sets
-## texture_filter (BaseMaterial3D only — a ShaderMaterial's sampler
-## filter is a compile-time hint, not something patchable at runtime; see
-## RetroSurfaceMaterial's own doc comment), and (if the style forces it)
-## downsamples every texture slot to max_texture_size — albedo_texture for
-## a BaseMaterial3D, or RetroSurfaceMaterial's own several slots via its
+## Walks the live scene tree and, on every material it finds: applies the
+## active VisualStyleProfile's nearest/linear texture filter — live via
+## BaseMaterial3D.texture_filter, or by swapping in the matching compiled
+## shader variant for a RetroSurfaceMaterial (apply_texture_filter(); see
+## its own doc comment for why a ShaderMaterial needs that instead of a
+## simple property set) — and (if the style forces it) downsamples every
+## texture slot to max_texture_size — albedo_texture for a BaseMaterial3D,
+## or RetroSurfaceMaterial's own several slots via its
 ## apply_texture_downsample(). Mutates the shared Material/Texture
 ## Resources in place (not per-instance overrides), so a material used by
 ## many MeshInstance3Ds only needs to be touched once and stays
@@ -349,15 +351,16 @@ func _apply_material_patches() -> void:
 	if profile == null or not is_inside_tree():
 		return
 	var filter := profile.resolve_texture_filter()
+	var nearest := profile.texture_filter_nearest
 
 	var force_downsample: bool = ProjectSettings.get_setting(FORCE_TEXTURE_DOWNSAMPLE_SETTING, false)
 	var max_texture_size: int = -1
 	if force_downsample:
 		max_texture_size = ProjectSettings.get_setting(MAX_TEXTURE_SIZE_SETTING, 256)
-	_patch_material_recursive(get_tree().root, filter, max_texture_size)
+	_patch_material_recursive(get_tree().root, filter, nearest, max_texture_size)
 
 
-func _patch_material_recursive(node: Node, filter: BaseMaterial3D.TextureFilter, max_texture_size: int) -> void:
+func _patch_material_recursive(node: Node, filter: BaseMaterial3D.TextureFilter, nearest: bool, max_texture_size: int) -> void:
 	var mesh_instance := node as MeshInstance3D
 	if mesh_instance and mesh_instance.mesh:
 		for i in mesh_instance.mesh.get_surface_count():
@@ -367,10 +370,13 @@ func _patch_material_recursive(node: Node, filter: BaseMaterial3D.TextureFilter,
 				base_mat.texture_filter = filter
 				if max_texture_size > 0:
 					_downsample_if_needed(base_mat, max_texture_size)
-			elif mat is RetroSurfaceMaterial and max_texture_size > 0:
-				(mat as RetroSurfaceMaterial).apply_texture_downsample(max_texture_size)
+			elif mat is RetroSurfaceMaterial:
+				var retro_mat := mat as RetroSurfaceMaterial
+				retro_mat.apply_texture_filter(nearest)
+				if max_texture_size > 0:
+					retro_mat.apply_texture_downsample(max_texture_size)
 	for child in node.get_children():
-		_patch_material_recursive(child, filter, max_texture_size)
+		_patch_material_recursive(child, filter, nearest, max_texture_size)
 
 
 ## Shrinks mat.albedo_texture in place if it exceeds max_size — only

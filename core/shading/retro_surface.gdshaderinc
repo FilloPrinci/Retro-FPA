@@ -1,12 +1,11 @@
-// Shared logic for the two RetroSurface shader variants — see
-// retro_surface_pixel.gdshader / retro_surface_vertex.gdshader, which
-// #include this file and differ only in their `render_mode` line
-// (Godot decides per-pixel vs per-vertex lighting at shader-compile
-// time, not via a uniform, so "toggling" it means swapping which
-// compiled Shader resource is assigned — see
-// core/shading/retro_surface_material.gd's per_pixel_lighting export).
-// Keeping the actual logic in one #include'd file means the two
-// variants can never drift apart.
+// Shared logic for the four RetroSurface shader variants — see
+// retro_surface_{pixel,vertex}_{nearest,linear}.gdshader, which #include
+// this file and differ only in their `render_mode` line and whether
+// RETRO_FILTER_NEAREST is #define'd before the #include (both decided at
+// shader-compile time, not via a uniform — see
+// core/shading/retro_surface_material.gd's per_pixel_lighting export and
+// apply_texture_filter()). Keeping the actual logic in one #include'd
+// file means the four variants can never drift apart.
 //
 // Two independently configurable texture layers, blended by
 // layer_blend, plus an always-available fresnel rim
@@ -17,42 +16,63 @@
 // this project need a per-instance-unique copy before it's safe to
 // animate flash_strength on one).
 //
-// Every sampler is filter_nearest — this project's whole retro look
-// defaults to blocky/pixelated, so that's the sane default here too;
-// unlike BaseMaterial3D, a ShaderMaterial's sampler filter is a
-// compile-time hint, not something SettingsManager can patch at
-// runtime the way it does texture_filter_nearest for BaseMaterial3D
-// (see docs/visual_style.md) — a future per-style nearest/linear toggle
-// for this shader would need its own pixel/vertex-style variant split.
+// Every sampler's filter follows the active VisualStyleProfile's
+// texture_filter_nearest, same as SettingsManager patches
+// BaseMaterial3D.texture_filter live everywhere else — see
+// SettingsManager._patch_material_recursive() and
+// RetroSurfaceMaterial.apply_texture_filter(). A ShaderMaterial's sampler
+// filter is a compile-time hint though, unlike BaseMaterial3D's
+// runtime-patchable property, hence the RETRO_FILTER_NEAREST #ifdef
+// picking one of two filter_* hints per sampler below instead of a
+// uniform.
 
+#ifdef RETRO_FILTER_NEAREST
 uniform sampler2D albedo_texture_1 : source_color, hint_default_white, filter_nearest, repeat_enable;
+#else
+uniform sampler2D albedo_texture_1 : source_color, hint_default_white, filter_linear_mipmap, repeat_enable;
+#endif
 uniform vec4 albedo_color_1 : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform vec2 tiling_1 = vec2(1.0, 1.0);
 uniform vec2 offset_1 = vec2(0.0, 0.0);
 // Tiles per second on each axis independently — e.g. (0.1, 0.0) scrolls
 // slowly rightward, (0.0, -0.2) scrolls down faster.
 uniform vec2 scroll_speed_1 = vec2(0.0, 0.0);
+#ifdef RETRO_FILTER_NEAREST
 uniform sampler2D emission_texture_1 : source_color, hint_default_black, filter_nearest, repeat_enable;
-uniform vec4 emission_color_1 : source_color = vec4(0.0, 0.0, 0.0, 1.0);
 uniform sampler2D normal_texture_1 : hint_normal, filter_nearest, repeat_enable;
-uniform float normal_strength_1 : hint_range(0.0, 2.0) = 1.0;
 uniform sampler2D smoothness_texture_1 : hint_default_white, filter_nearest, repeat_enable;
-uniform float smoothness_1 : hint_range(0.0, 1.0) = 0.5;
 uniform sampler2D metallic_texture_1 : hint_default_white, filter_nearest, repeat_enable;
+#else
+uniform sampler2D emission_texture_1 : source_color, hint_default_black, filter_linear_mipmap, repeat_enable;
+uniform sampler2D normal_texture_1 : hint_normal, filter_linear_mipmap, repeat_enable;
+uniform sampler2D smoothness_texture_1 : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform sampler2D metallic_texture_1 : hint_default_white, filter_linear_mipmap, repeat_enable;
+#endif
+uniform vec4 emission_color_1 : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform float normal_strength_1 : hint_range(0.0, 2.0) = 1.0;
+uniform float smoothness_1 : hint_range(0.0, 1.0) = 0.5;
 uniform float metallic_1 : hint_range(0.0, 1.0) = 0.0;
 
+#ifdef RETRO_FILTER_NEAREST
 uniform sampler2D albedo_texture_2 : source_color, hint_default_white, filter_nearest, repeat_enable;
+uniform sampler2D emission_texture_2 : source_color, hint_default_black, filter_nearest, repeat_enable;
+uniform sampler2D normal_texture_2 : hint_normal, filter_nearest, repeat_enable;
+uniform sampler2D smoothness_texture_2 : hint_default_white, filter_nearest, repeat_enable;
+uniform sampler2D metallic_texture_2 : hint_default_white, filter_nearest, repeat_enable;
+#else
+uniform sampler2D albedo_texture_2 : source_color, hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform sampler2D emission_texture_2 : source_color, hint_default_black, filter_linear_mipmap, repeat_enable;
+uniform sampler2D normal_texture_2 : hint_normal, filter_linear_mipmap, repeat_enable;
+uniform sampler2D smoothness_texture_2 : hint_default_white, filter_linear_mipmap, repeat_enable;
+uniform sampler2D metallic_texture_2 : hint_default_white, filter_linear_mipmap, repeat_enable;
+#endif
 uniform vec4 albedo_color_2 : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform vec2 tiling_2 = vec2(1.0, 1.0);
 uniform vec2 offset_2 = vec2(0.0, 0.0);
 uniform vec2 scroll_speed_2 = vec2(0.0, 0.0);
-uniform sampler2D emission_texture_2 : source_color, hint_default_black, filter_nearest, repeat_enable;
 uniform vec4 emission_color_2 : source_color = vec4(0.0, 0.0, 0.0, 1.0);
-uniform sampler2D normal_texture_2 : hint_normal, filter_nearest, repeat_enable;
 uniform float normal_strength_2 : hint_range(0.0, 2.0) = 1.0;
-uniform sampler2D smoothness_texture_2 : hint_default_white, filter_nearest, repeat_enable;
 uniform float smoothness_2 : hint_range(0.0, 1.0) = 0.5;
-uniform sampler2D metallic_texture_2 : hint_default_white, filter_nearest, repeat_enable;
 uniform float metallic_2 : hint_range(0.0, 1.0) = 0.0;
 
 // How layer 2 combines onto layer 1 — same operation applied uniformly

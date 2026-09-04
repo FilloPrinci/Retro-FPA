@@ -24,10 +24,14 @@ extends ShaderMaterial
 ## Texture Downsample) reaches every texture slot here exactly like it
 ## does BaseMaterial3D.albedo_texture — see
 ## SettingsManager._patch_material_recursive(), which calls this class's
-## own apply_texture_downsample().
+## own apply_texture_downsample(). Same for the active VisualStyleProfile's
+## nearest/linear texture filter, via apply_texture_filter() — see that
+## method.
 
-const _SHADER_PIXEL := preload("res://core/shading/retro_surface_pixel.gdshader")
-const _SHADER_VERTEX := preload("res://core/shading/retro_surface_vertex.gdshader")
+const _SHADER_PIXEL_NEAREST := preload("res://core/shading/retro_surface_pixel_nearest.gdshader")
+const _SHADER_PIXEL_LINEAR := preload("res://core/shading/retro_surface_pixel_linear.gdshader")
+const _SHADER_VERTEX_NEAREST := preload("res://core/shading/retro_surface_vertex_nearest.gdshader")
+const _SHADER_VERTEX_LINEAR := preload("res://core/shading/retro_surface_vertex_linear.gdshader")
 
 ## Order matters — must match layer_blend_mode's hint_enum in
 ## retro_surface.gdshaderinc (int uniform, no shared source of truth to
@@ -35,15 +39,42 @@ const _SHADER_VERTEX := preload("res://core/shading/retro_surface_vertex.gdshade
 ## in-sync shader/hint pairs).
 enum LayerBlendMode { ALPHA_OVER, MULTIPLY, ADDITIVE, SUBTRACT, DIVIDE }
 
-## Godot decides per-pixel vs per-vertex lighting at shader-compile time
-## (render_mode vertex_lighting), not via a uniform — so this "toggle"
-## actually swaps which of the two compiled Shader resources is assigned
-## to `shader`. Both #include the same retro_surface.gdshaderinc, so
-## every other field below behaves identically either way.
+## Godot decides per-pixel vs per-vertex lighting, and a sampler's
+## nearest/linear filter, at shader-compile time (render_mode
+## vertex_lighting; the RETRO_FILTER_NEAREST #ifdef in
+## retro_surface.gdshaderinc) — not via a uniform either way. So both
+## "toggles" (this one, and apply_texture_filter() below) really just
+## pick which of the four compiled Shader resources is assigned to
+## `shader`. All four #include the same retro_surface.gdshaderinc, so
+## every other field on this class behaves identically regardless of
+## which is active.
 @export var per_pixel_lighting: bool = true:
 	set(value):
 		per_pixel_lighting = value
-		shader = _SHADER_PIXEL if value else _SHADER_VERTEX
+		_update_shader()
+
+## Not @export: this tracks the active VisualStyleProfile's
+## texture_filter_nearest, the same way BaseMaterial3D.texture_filter
+## does — set automatically by SettingsManager._patch_material_recursive(),
+## not hand-authored per-material, so it never falls out of sync with
+## every other material's filter in the same scene. Call
+## apply_texture_filter() rather than assigning this directly.
+var _nearest_filter: bool = true
+
+
+## Matches BaseMaterial3D.texture_filter's live patching for
+## RetroSurfaceMaterial — called by SettingsManager whenever the active
+## VisualStyleProfile's texture_filter_nearest is (re-)applied.
+func apply_texture_filter(nearest: bool) -> void:
+	_nearest_filter = nearest
+	_update_shader()
+
+
+func _update_shader() -> void:
+	if per_pixel_lighting:
+		shader = _SHADER_PIXEL_NEAREST if _nearest_filter else _SHADER_PIXEL_LINEAR
+	else:
+		shader = _SHADER_VERTEX_NEAREST if _nearest_filter else _SHADER_VERTEX_LINEAR
 
 
 ## A property setter isn't guaranteed to run just for its own declared
@@ -53,7 +84,7 @@ enum LayerBlendMode { ALPHA_OVER, MULTIPLY, ADDITIVE, SUBTRACT, DIVIDE }
 ## itself correctly reads back as true.
 func _init() -> void:
 	if shader == null:
-		shader = _SHADER_PIXEL
+		_update_shader()
 
 @export_group("Layer 1")
 @export var albedo_color_1: Color = Color.WHITE:

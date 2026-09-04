@@ -11,9 +11,11 @@ extends WorldEnvironment
 ## second WorldEnvironment active during Play would compete with it.
 ##
 ## Previews fog/ambient/background/color-grading/bloom (via its own
-## Environment) and texture_filter_nearest (patched onto materials in the edited scene,
-## via BaseMaterial3D.texture_filter — a reversible, non-destructive enum,
-## same mechanism SettingsManager uses at runtime). Deliberately does NOT
+## Environment) and texture_filter_nearest (patched onto materials in the
+## edited scene — BaseMaterial3D.texture_filter directly, or
+## RetroSurfaceMaterial.apply_texture_filter() swapping in the matching
+## compiled shader variant — both reversible and non-destructive, same
+## mechanism SettingsManager uses at runtime). Deliberately does NOT
 ## preview texture downsampling: that mutates a texture's actual pixel
 ## data, which would only ever be discarded automatically at the end of a
 ## Play session — but an editor session can sit open for hours, and if you
@@ -56,15 +58,17 @@ func _refresh() -> void:
 
 	var scene_root := get_tree().edited_scene_root
 	if scene_root:
-		_patch_texture_filter_recursive(scene_root, profile.resolve_texture_filter())
+		_patch_texture_filter_recursive(scene_root, profile.resolve_texture_filter(), profile.texture_filter_nearest)
 
 
-func _patch_texture_filter_recursive(node: Node, filter: BaseMaterial3D.TextureFilter) -> void:
+func _patch_texture_filter_recursive(node: Node, filter: BaseMaterial3D.TextureFilter, nearest: bool) -> void:
 	var mesh_instance := node as MeshInstance3D
 	if mesh_instance and mesh_instance.mesh:
 		for i in mesh_instance.mesh.get_surface_count():
-			var mat := mesh_instance.get_active_material(i) as BaseMaterial3D
-			if mat:
-				mat.texture_filter = filter
+			var mat := mesh_instance.get_active_material(i)
+			if mat is BaseMaterial3D:
+				(mat as BaseMaterial3D).texture_filter = filter
+			elif mat is RetroSurfaceMaterial:
+				(mat as RetroSurfaceMaterial).apply_texture_filter(nearest)
 	for child in node.get_children():
-		_patch_texture_filter_recursive(child, filter)
+		_patch_texture_filter_recursive(child, filter, nearest)
