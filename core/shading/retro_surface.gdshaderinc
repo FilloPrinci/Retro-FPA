@@ -134,6 +134,17 @@ void vertex() {
 	scroll_offset_2 = offset_2 + scroll_speed_2 * TIME;
 }
 
+// Always writes ALPHA (needed for Alpha Over's Porter-Duff compositing
+// below), which makes Godot classify this shader as using the transparent
+// render pass at compile time — regardless of the actual alpha value a
+// given material ends up producing (most configurations, including a
+// fully opaque one, still go through this pass). The transparent pass
+// doesn't write the depth buffer by default, which breaks occlusion
+// against other objects (a RetroSurfaceMaterial mesh could render in
+// front of opaque geometry that's actually closer to the camera). Each of
+// the four .gdshader wrappers declares `render_mode depth_draw_always`
+// to force correct depth-buffer writes regardless of blend mode — do not
+// drop it if this file's ALPHA output ever changes shape.
 void fragment() {
 	vec2 uv1 = UV * tiling_1 + scroll_offset_1;
 	vec2 uv2 = UV * tiling_2 + scroll_offset_2;

@@ -8,7 +8,12 @@
 // VisualStyleProfile, applied automatically by SettingsManager — see
 // that script, never assign this shader directly).
 shader_type spatial;
-render_mode vertex_lighting;
+// depth_draw_always: writing ALPHA below (needed for Alpha Over) puts this
+// shader in Godot's transparent pass at compile time regardless of the
+// actual alpha value — see retro_surface.gdshaderinc's fragment() doc
+// comment for why this is required to keep depth-sorting against other
+// objects correct even when a given material ends up fully opaque.
+render_mode vertex_lighting, depth_draw_always;
 
 #define RETRO_FILTER_NEAREST
 #include "res://core/shading/retro_surface.gdshaderinc"
