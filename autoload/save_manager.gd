@@ -16,8 +16,11 @@ extends Node
 ##
 ## What's captured: which level, the player's exact position/orientation
 ## (not just "which SpawnPoint" — resuming a horror game mid-room matters
-## more than most genres), every GameManager flag, and the full inventory
-## (every slot's item + quantity, and which one is equipped). Flag values
+## more than most genres), every GameManager flag (which is also how a
+## picked-up ItemPickup remembers not to reappear — see its own doc
+## comment), the full inventory (every slot's item + quantity, and which
+## one is equipped), and every Grabbable physical object's exact
+## transform (a moved Crate stays moved). Flag values
 ## must be JSON-safe (bool/int/float/String/Array/Dictionary) — the same
 ## constraint set_flag/get_flag never enforced because nothing previously
 ## needed to serialize them; a flag holding anything else silently fails
@@ -65,6 +68,7 @@ func save_game(slot: int = 0) -> bool:
 		"player_transform": var_to_str(player.global_transform),
 		"flags": GameManager.get_all_flags(),
 		"inventory": _serialize_inventory(),
+		"physical_objects": _serialize_physical_objects(),
 	}
 
 	var dir_error := DirAccess.make_dir_recursive_absolute(SAVE_DIR)
@@ -84,16 +88,21 @@ func save_game(slot: int = 0) -> bool:
 
 
 ## Loads `slot` and jumps the current run straight into it: clears flags
-## and inventory first (same as start_new_game()), loads the saved level
-## through SceneManager.change_scene() exactly like any other level
-## transition (fade included) — passing the saved player transform as
-## change_scene()'s own override so the player is placed there *before*
-## fade_in reveals anything, rather than popping into view at the
-## level's SpawnPoint first and only teleporting to the real spot once
-## the screen's already visible — then restores every flag and the full
-## inventory on top. Awaited — false if the slot doesn't exist or the
-## level failed to load, with nothing changed either way (flags/inventory
-## are only cleared once change_scene() has actually succeeded).
+## and inventory first (same as start_new_game()), restores every flag
+## *before* the level loads — ItemPickup checks GameManager flags for
+## "was I already taken" from its own _ready(), which runs synchronously
+## as part of the level entering the tree inside change_scene() below, so
+## the flag has to already be set by then, not after — then loads the
+## saved level through SceneManager.change_scene() exactly like any other
+## level transition (fade included), passing the saved player transform
+## as its own override and listening once for its level_placed signal to
+## restore physical object positions, so both are already correct
+## *before* fade_in reveals anything rather than popping into view at
+## their default spots first. Restores the full inventory once
+## change_scene() returns. Awaited — false if the slot doesn't exist or
+## the level failed to load, with nothing changed either way (flags/
+## inventory are only cleared once change_scene() has actually
+## succeeded).
 func load_game(slot: int = 0) -> bool:
 	if not has_save(slot):
 		load_failed.emit(slot, "no_save")
@@ -120,17 +129,24 @@ func load_game(slot: int = 0) -> bool:
 	GameManager.clear_flags()
 	InventoryManager.clear()
 
+	var flags: Dictionary = data.get("flags", {})
+	for key in flags:
+		GameManager.set_flag(key, flags[key])
+
 	var transform_override: Variant = null
 	if data.has("player_transform"):
 		transform_override = str_to_var(data["player_transform"])
 
+	var physical_data: Dictionary = data.get("physical_objects", {})
+	var restore_physical := func(level: Node) -> void:
+		_restore_physical_objects(level, physical_data)
+	SceneManager.level_placed.connect(restore_physical, CONNECT_ONE_SHOT)
+
 	if not await SceneManager.change_scene(level_path, "default", true, transform_override):
+		if SceneManager.level_placed.is_connected(restore_physical):
+			SceneManager.level_placed.disconnect(restore_physical)
 		load_failed.emit(slot, "level_load_failed")
 		return false
-
-	var flags: Dictionary = data.get("flags", {})
-	for key in flags:
-		GameManager.set_flag(key, flags[key])
 
 	_deserialize_inventory(data.get("inventory", {}))
 
@@ -140,6 +156,44 @@ func load_game(slot: int = 0) -> bool:
 
 func _save_path(slot: int) -> String:
 	return SAVE_DIR + "save_%d.json" % slot
+
+
+## Every Grabbable physical object currently in the level, keyed by its
+## own path within the level (SceneManager.get_path_in_level()) —
+## Grabbable itself only marks a RigidBody3D as grabbable (see its own
+## doc comment); what actually needs persisting is that RigidBody3D's
+## (its parent's) transform.
+func _serialize_physical_objects() -> Dictionary:
+	var level_root := SceneManager.get_current_level_root()
+	if level_root == null:
+		return {}
+	var result := {}
+	for grabbable in level_root.find_children("*", "Grabbable", true, false):
+		var body := grabbable.get_parent()
+		if body is Node3D:
+			var path := SceneManager.get_path_in_level(body)
+			if not path.is_empty():
+				result[path] = var_to_str((body as Node3D).global_transform)
+	return result
+
+
+## Called once via SceneManager.level_placed — see load_game(). Zeroes
+## velocity on anything that's a RigidBody3D too: a crate mid-fall or
+## mid-roll when the save was made should settle quietly at its restored
+## spot, not keep carrying momentum from a physics state nothing else
+## about this load is reproducing.
+func _restore_physical_objects(level: Node, objects_data: Dictionary) -> void:
+	for path in objects_data:
+		if not level.has_node(path):
+			continue
+		var node := level.get_node(path)
+		if not node is Node3D:
+			continue
+		var body := node as Node3D
+		body.global_transform = str_to_var(objects_data[path])
+		if body is RigidBody3D:
+			(body as RigidBody3D).linear_velocity = Vector3.ZERO
+			(body as RigidBody3D).angular_velocity = Vector3.ZERO
 
 
 func _serialize_inventory() -> Dictionary:

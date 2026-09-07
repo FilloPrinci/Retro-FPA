@@ -8,6 +8,14 @@ extends Node
 
 signal scene_change_started(scene_path: String)
 signal scene_change_finished(scene_path: String)
+## Emitted once the level's own tree exists and the player has been
+## placed, but before the fade-in (if any) reveals it — the moment for
+## anything that needs to change something about the level's own state
+## *before* the player can see it, so an adjustment shows up as "already
+## like that" instead of a visible pop right after the level fades in.
+## SaveManager listens for exactly one of these (per load_game() call) to
+## restore physical object positions — see its own doc comment.
+signal level_placed(level: Node)
 
 const PLAYER_SCENE_PATH := "res://core/player/player.tscn"
 
@@ -58,6 +66,34 @@ func get_current_level_path() -> String:
 	return _current_level.get_child(0).scene_file_path
 
 
+## The root node of whatever's currently loaded under CurrentLevel, or
+## null if nothing is. For anything that needs to walk the level's own
+## tree from outside it (e.g. SaveManager, looking for every Grabbable
+## physical object to persist) without keeping its own reference to
+## CurrentLevel.
+func get_current_level_root() -> Node:
+	if _current_level.get_child_count() == 0:
+		return null
+	return _current_level.get_child(0)
+
+
+## node's path relative to the currently loaded level's own root — a
+## stable identifier for "this specific node, in this specific level"
+## that survives the level being torn down and reloaded fresh (same
+## scene, same structure, same relative path) — unlike node.get_path(),
+## which is relative to the whole SceneTree and would also change if
+## Main/CurrentLevel's own names ever did. "" if there's no current
+## level, or node isn't part of it. Used by anything that needs to
+## persist per-node state across a level reload or a save/load — see
+## ItemPickup (marking itself already taken) and SaveManager (physical
+## object positions).
+func get_path_in_level(node: Node) -> String:
+	var level_root := get_current_level_root()
+	if level_root == null or not level_root.is_ancestor_of(node):
+		return ""
+	return String(level_root.get_path_to(node))
+
+
 ## Fades out (unless show_transition is false), swaps the level under
 ## CurrentLevel, places the Player on the matching SpawnPoint (or exactly
 ## at player_transform_override, if given — see SaveManager.load_game(),
@@ -98,6 +134,8 @@ func change_scene(scene_path: String, spawn_id: String = "default", show_transit
 			player.global_transform = player_transform_override
 	else:
 		_place_player_at_spawn(level, spawn_id)
+
+	level_placed.emit(level)
 
 	# Flip to PLAYING while the screen is still fully black, so menu/HUD
 	# visibility (driven by GameManager.state) has already caught up before
