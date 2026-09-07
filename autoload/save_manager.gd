@@ -86,11 +86,14 @@ func save_game(slot: int = 0) -> bool:
 ## Loads `slot` and jumps the current run straight into it: clears flags
 ## and inventory first (same as start_new_game()), loads the saved level
 ## through SceneManager.change_scene() exactly like any other level
-## transition (fade included), then restores the exact player transform,
-## every flag, and the full inventory on top. Awaited — false if the slot
-## doesn't exist or the level failed to load, with nothing changed either
-## way (flags/inventory are only cleared once change_scene() has actually
-## succeeded).
+## transition (fade included) — passing the saved player transform as
+## change_scene()'s own override so the player is placed there *before*
+## fade_in reveals anything, rather than popping into view at the
+## level's SpawnPoint first and only teleporting to the real spot once
+## the screen's already visible — then restores every flag and the full
+## inventory on top. Awaited — false if the slot doesn't exist or the
+## level failed to load, with nothing changed either way (flags/inventory
+## are only cleared once change_scene() has actually succeeded).
 func load_game(slot: int = 0) -> bool:
 	if not has_save(slot):
 		load_failed.emit(slot, "no_save")
@@ -117,13 +120,13 @@ func load_game(slot: int = 0) -> bool:
 	GameManager.clear_flags()
 	InventoryManager.clear()
 
-	if not await SceneManager.change_scene(level_path):
+	var transform_override: Variant = null
+	if data.has("player_transform"):
+		transform_override = str_to_var(data["player_transform"])
+
+	if not await SceneManager.change_scene(level_path, "default", true, transform_override):
 		load_failed.emit(slot, "level_load_failed")
 		return false
-
-	var player := GameManager.get_player()
-	if player and data.has("player_transform"):
-		player.global_transform = str_to_var(data["player_transform"])
 
 	var flags: Dictionary = data.get("flags", {})
 	for key in flags:

@@ -59,8 +59,11 @@ func get_current_level_path() -> String:
 
 
 ## Fades out (unless show_transition is false), swaps the level under
-## CurrentLevel, places the Player on the matching SpawnPoint, then fades
-## back in. This is the EXCLUSIVE load — see add_scene() for ADDITIVE.
+## CurrentLevel, places the Player on the matching SpawnPoint (or exactly
+## at player_transform_override, if given — see SaveManager.load_game(),
+## the one caller that needs the player somewhere other than a
+## SpawnPoint), then fades back in. This is the EXCLUSIVE load — see
+## add_scene() for ADDITIVE.
 ##
 ## Returns false without doing anything if a change is already in
 ## progress, true once this one has fully completed — SceneChangeTrigger
@@ -68,7 +71,7 @@ func get_current_level_path() -> String:
 ## than burning it on a call that got silently dropped (e.g. two
 ## triggers reachable close enough together that the second fires while
 ## the first's transition is still playing out).
-func change_scene(scene_path: String, spawn_id: String = "default", show_transition: bool = true) -> bool:
+func change_scene(scene_path: String, spawn_id: String = "default", show_transition: bool = true, player_transform_override: Variant = null) -> bool:
 	if _is_changing_scene:
 		return false
 	_is_changing_scene = true
@@ -84,7 +87,17 @@ func change_scene(scene_path: String, spawn_id: String = "default", show_transit
 	var packed_scene: PackedScene = load(scene_path)
 	var level := packed_scene.instantiate()
 	_current_level.add_child(level)
-	_place_player_at_spawn(level, spawn_id)
+	# Placing the player has to happen before fade_in below reveals
+	# anything — a caller that overrides the transform (SaveManager) wants
+	# the player to appear exactly there, not pop into view at the
+	# SpawnPoint first and only jump to the real spot once the screen's
+	# already visible.
+	if player_transform_override != null:
+		var player := GameManager.get_player()
+		if player:
+			player.global_transform = player_transform_override
+	else:
+		_place_player_at_spawn(level, spawn_id)
 
 	# Flip to PLAYING while the screen is still fully black, so menu/HUD
 	# visibility (driven by GameManager.state) has already caught up before
