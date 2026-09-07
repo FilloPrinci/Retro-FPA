@@ -55,7 +55,7 @@ func _exit_tree() -> void:
 func _on_new_dialogue_requested() -> void:
 	var selected := get_editor_interface().get_selection().get_selected_nodes()
 	if selected.is_empty():
-		_show_result({"ok": false, "message": "Seleziona prima il nodo dell'NPC nella scena."})
+		_show_result({"ok": false, "message": "Select the NPC's node in the scene first."})
 		return
 	_wizard.open_for_node(selected[0])
 
