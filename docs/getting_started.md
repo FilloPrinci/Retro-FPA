@@ -7,7 +7,10 @@ something that can take damage, and a second level to walk into. Each
 section is short and ends with something you can press Play and see.
 
 This is the practical companion to [`CLAUDE.md`](../CLAUDE.md) (architecture
-reference), [`docs/visual_style.md`](visual_style.md) (full depth on the
+reference), [`docs/systems_reference.md`](systems_reference.md) (a lookup
+reference covering every system and option this tutorial only shows part
+of — read this once you've built something and want to see the full
+picture), [`docs/visual_style.md`](visual_style.md) (full depth on the
 PS1/N64/GameCube look), and the Blender docs
 ([`blender_workflow.md`](blender_workflow.md),
 [`blender_asset_guidelines.md`](blender_asset_guidelines.md)) for real art

@@ -19,10 +19,13 @@ systems.
 See `docs/getting_started.md` for a hands-on, step-by-step walkthrough of
 every reusable system (visual style, levels, physical/inventory objects,
 weapons, NPCs/dialogue, damage, scene transitions) building a small game
-from a fresh clone; "How to use this as a template" below for the
-high-level workflow; `docs/blender_workflow.md` for the animated-model
-pipeline; `docs/blender_asset_guidelines.md` for asset creation guidelines
-across every category (statics, props, entities); and `docs/visual_style.md`
+from a fresh clone; `docs/systems_reference.md` for the lookup-reference
+companion to that tutorial — every system, every option, and which to
+pick, organized for looking things up rather than reading start to end;
+"How to use this as a template" below for the high-level workflow;
+`docs/blender_workflow.md` for the animated-model pipeline;
+`docs/blender_asset_guidelines.md` for asset creation guidelines across
+every category (statics, props, entities); and `docs/visual_style.md`
 for the PS1/N64/GameCube visual style system.
 
 ## Architecture summary
