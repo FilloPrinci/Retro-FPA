@@ -31,3 +31,8 @@ UI_INTERACT_TAKE,Take,Prendi
 UI_INTERACT_GRAB,Grab,Afferra
 UI_EQUIP,Equip,Equipaggia
 UI_UNEQUIP,Unequip,Rimuovi
+UI_SAVE_GAME,Save Game,Salva Partita
+UI_LOAD_GAME,Load Game,Carica Partita
+UI_CONTINUE,Continue,Continua
+UI_GAME_SAVED,Game saved.,Partita salvata.
+UI_GAME_SAVE_FAILED,Save failed.,Salvataggio fallito.

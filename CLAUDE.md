@@ -51,16 +51,17 @@ for the PS1/N64/GameCube visual style system.
 
 Registration order matters (see Project Settings > Autoload):
 `GameManager` → `SettingsManager` → `AudioManager` → `InventoryManager` →
-`DialogueManager` → `SceneManager`.
+`DialogueManager` → `SceneManager` → `SaveManager`.
 
 | Autoload | Responsibility | Key API |
 |---|---|---|
-| `GameManager` | Global game state, control locking, save-independent flags | `register_player`/`get_player`, `set_flag`/`get_flag`, `set_control_enabled`, `state` (`GameState` enum) + `state_changed` signal |
+| `GameManager` | Global game state, control locking, in-memory flags | `register_player`/`get_player`, `set_flag`/`get_flag`/`get_all_flags`, `set_control_enabled`, `state` (`GameState` enum) + `state_changed` signal |
 | `SettingsManager` | Persisted user prefs + visual style + resolution | `apply_settings`, `save_settings`/`load_settings` (`user://settings.cfg`), `register_world_environment`, `visual_style` (`VisualStyle` enum, read live from its Project Setting — deliberately *not* persisted, since it has no Settings-menu control yet, see `docs/visual_style.md`), `window_resolution`/`fullscreen`/`text_scale` (player-facing, persisted, in `ui/settings_menu/` — `text_scale` and the project's own VT323 font (`UI_FONT`, `assets/fonts/`) are both applied by walking the live tree and setting a hard per-instance override on every Label/Button/CheckBox/OptionButton found, not a Theme — a Theme assigned to the game window was tried first and confirmed, in the real running game, to never reach already-placed Controls), `is_resolution_forced`, `settings_changed` signal |
 | `AudioManager` | Bus-based sound playback | `play_sfx_2d`/`play_sfx_3d`, `play_music`/`stop_music`, `play_ambient` |
 | `InventoryManager` | Slot-based inventory + equip state | `add_item`/`remove_item`/`has_item`, `equip_slot`/`unequip`, `inventory_changed`/`item_equipped` signals |
 | `DialogueManager` | Custom lightweight dialogue runner | `start_dialogue`, `advance`, `choose`, `end_dialogue`, `line_changed`/`choices_presented`/`dialogue_ended` signals |
-| `SceneManager` | Level loading + game lifecycle | `register_main`, `start_new_game`, `change_scene` (exclusive: replaces `CurrentLevel`, places the player; returns `bool` — `false` without doing anything if a change is already in progress, so a caller like `SceneChangeTrigger` knows not to treat a rejected call as done), `add_scene` (additive: instantiates alongside whatever's loaded, doesn't touch the player), `return_to_main_menu`, `scene_change_started`/`finished` signals |
+| `SceneManager` | Level loading + game lifecycle | `register_main`, `start_new_game`, `change_scene` (exclusive: replaces `CurrentLevel`, places the player; returns `bool` — `false` without doing anything if a change is already in progress, so a caller like `SceneChangeTrigger` knows not to treat a rejected call as done), `add_scene` (additive: instantiates alongside whatever's loaded, doesn't touch the player), `return_to_main_menu`, `get_current_level_path`, `scene_change_started`/`finished` signals |
+| `SaveManager` | Save/load a run to disk, layered entirely on top of the other autoloads' own public APIs | `save_game`/`load_game`/`has_save`/`delete_save` (all take a `slot: int`, default 0), `user://saves/save_<slot>.json` — captures current level, exact player transform, every `GameManager` flag (must be JSON-safe values) and the full `InventoryManager` state; `save_completed`/`load_completed`/`save_failed`/`load_failed` signals. Wired into `ui/pause_menu/` (Save/Load buttons) and `ui/main_menu/` (Continue button, visible only when a slot-0 save exists) |
 
 No separate event bus: the signals on these autoloads already are the
 decoupled communication channel.

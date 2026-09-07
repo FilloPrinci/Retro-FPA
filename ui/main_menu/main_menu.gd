@@ -8,6 +8,7 @@ extends Control
 
 @onready var panel: Control = $Panel
 @onready var new_game_button: Button = $Panel/VBox/NewGameButton
+@onready var continue_button: Button = $Panel/VBox/ContinueButton
 @onready var settings_button: Button = $Panel/VBox/SettingsButton
 @onready var quit_button: Button = $Panel/VBox/QuitButton
 @onready var settings_menu: Control = $SettingsMenu
@@ -16,8 +17,10 @@ extends Control
 func _ready() -> void:
 	visible = GameManager.state == GameManager.GameState.MAIN_MENU
 	GameManager.state_changed.connect(_on_state_changed)
+	_refresh_continue_button()
 
 	new_game_button.pressed.connect(_on_new_game_pressed)
+	continue_button.pressed.connect(_on_continue_pressed)
 	settings_button.pressed.connect(_on_settings_pressed)
 	quit_button.pressed.connect(_on_quit_pressed)
 	settings_menu.closed.connect(_on_settings_closed)
@@ -25,6 +28,15 @@ func _ready() -> void:
 
 func _on_state_changed(new_state: GameManager.GameState) -> void:
 	visible = new_state == GameManager.GameState.MAIN_MENU
+	if visible:
+		# Coming back here (e.g. via "Main Menu" from the pause menu) can
+		# only happen after whatever save/no-save state existed when this
+		# node was first ready — refresh in case a save was made meanwhile.
+		_refresh_continue_button()
+
+
+func _refresh_continue_button() -> void:
+	continue_button.visible = SaveManager.has_save(0)
 
 
 func _on_new_game_pressed() -> void:
@@ -32,6 +44,10 @@ func _on_new_game_pressed() -> void:
 		push_warning("MainMenu.first_level_path is not set.")
 		return
 	SceneManager.start_new_game(first_level_path)
+
+
+func _on_continue_pressed() -> void:
+	SaveManager.load_game(0)
 
 
 func _on_settings_pressed() -> void:

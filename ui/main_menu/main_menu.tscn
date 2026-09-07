@@ -51,6 +51,10 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "UI_NEW_GAME"
 
+[node name="ContinueButton" type="Button" parent="Panel/VBox"]
+layout_mode = 2
+text = "UI_CONTINUE"
+
 [node name="SettingsButton" type="Button" parent="Panel/VBox" unique_id=137686525]
 layout_mode = 2
 text = "UI_SETTINGS_TITLE"

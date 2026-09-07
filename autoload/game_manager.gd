@@ -1,9 +1,11 @@
 extends Node
 ## Global game state and small in-memory flags. Autoload singleton.
 ##
-## This is intentionally not a save system — flags only live for the current
-## play session. A specific game can add real persistence on top of
-## get_flag/set_flag without changing anything that reads them.
+## This is intentionally not a save system by itself — flags only live in
+## memory here. SaveManager is the persistence layer built on top of
+## get_flag/set_flag/get_all_flags (and InventoryManager, and
+## SceneManager) without either of them needing to know save/load exists
+## at all.
 
 signal control_enabled_changed(enabled: bool)
 signal state_changed(new_state: GameState)
@@ -74,3 +76,12 @@ func has_flag(key: String) -> bool:
 
 func clear_flags() -> void:
 	_flags.clear()
+
+
+## A copy of every flag currently set — for something that needs to see
+## all of them at once (e.g. a save system serializing the whole set),
+## not for reacting to any single one (use get_flag for that). A copy, not
+## the live Dictionary, so a caller can't mutate flags by editing what
+## this returns.
+func get_all_flags() -> Dictionary:
+	return _flags.duplicate()

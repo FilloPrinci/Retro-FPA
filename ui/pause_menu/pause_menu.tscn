@@ -46,6 +46,12 @@ text = "UI_PAUSE_TITLE"
 [node name="ResumeButton" type="Button" parent="Panel/VBox"]
 text = "UI_RESUME"
 
+[node name="SaveButton" type="Button" parent="Panel/VBox"]
+text = "UI_SAVE_GAME"
+
+[node name="LoadButton" type="Button" parent="Panel/VBox"]
+text = "UI_LOAD_GAME"
+
 [node name="SettingsButton" type="Button" parent="Panel/VBox"]
 text = "UI_SETTINGS_TITLE"
 
@@ -54,5 +60,13 @@ text = "UI_MAIN_MENU"
 
 [node name="QuitButton" type="Button" parent="Panel/VBox"]
 text = "UI_QUIT"
+
+[node name="StatusLabel" type="Label" parent="Panel/VBox"]
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="StatusTimer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
 
 [node name="SettingsMenu" parent="." instance=ExtResource("2")]

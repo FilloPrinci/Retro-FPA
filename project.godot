@@ -27,6 +27,7 @@ AudioManager="*res://autoload/audio_manager.gd"
 InventoryManager="*res://autoload/inventory_manager.gd"
 DialogueManager="*res://autoload/dialogue_manager.gd"
 SceneManager="*res://autoload/scene_manager.gd"
+SaveManager="*res://autoload/save_manager.gd"
 
 [display]
 

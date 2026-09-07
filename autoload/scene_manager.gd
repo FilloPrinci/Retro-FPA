@@ -43,8 +43,19 @@ func return_to_main_menu() -> void:
 func reload_current_scene() -> void:
 	if _current_level.get_child_count() == 0:
 		return
-	var level_path: String = _current_level.get_child(0).scene_file_path
-	await change_scene(level_path, _spawn_id)
+	await change_scene(get_current_level_path(), _spawn_id)
+
+
+## The scene_file_path of whatever's currently loaded under CurrentLevel,
+## or "" if nothing is (e.g. still at the main menu). Used by
+## reload_current_scene() above and by SaveManager to know what to
+## persist — an EXCLUSIVE-loaded level only ever has one child, so its
+## own scene_file_path is exactly what change_scene() was originally
+## called with.
+func get_current_level_path() -> String:
+	if _current_level.get_child_count() == 0:
+		return ""
+	return _current_level.get_child(0).scene_file_path
 
 
 ## Fades out (unless show_transition is false), swaps the level under

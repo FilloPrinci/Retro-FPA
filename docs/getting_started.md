@@ -336,7 +336,22 @@ Look back at what actually happened above: no autoload was touched, no
 core script was opened, nothing was hand-wired with signals. Every step
 was placing a prefab or a plain node, filling in an Inspector, and running
 a wizard. That's the point of the template — `GameManager`, `SceneManager`,
-`InventoryManager`, `DialogueManager`, `SettingsManager`, `AudioManager`
-(see the autoload table in `CLAUDE.md`) and the whole `core/` library
-already handle state, persistence, input, and UI reactions; a new game is
-supposed to be entirely the content you just built.
+`InventoryManager`, `DialogueManager`, `SettingsManager`, `AudioManager`,
+`SaveManager` (see the autoload table in `CLAUDE.md`) and the whole
+`core/` library already handle state, persistence, input, and UI
+reactions; a new game is supposed to be entirely the content you just
+built.
+
+Save/load is one more example of this: `ui/pause_menu/`'s Save/Load
+buttons and `ui/main_menu/`'s Continue button (shown only once a save
+actually exists) are already wired to `SaveManager`, which persists
+whichever level is loaded, the player's exact position, every inventory
+slot, and every `GameManager` flag — the branching/quest state a
+`DialogueManager` conversation gates choices on (step 6) round-trips
+through a save automatically, since it's just flags underneath. Nothing
+from this walkthrough needed to change to get that; the one thing worth
+remembering during development is that old test saves under
+`user://saves/` don't know about a level/item you've since renamed or
+deleted, so delete them (or call `SaveManager.delete_save()`) after a
+big content restructure rather than debugging a "missing file" load
+error.
