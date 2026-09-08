@@ -95,8 +95,9 @@ project to duplicate.
 2. What to change per new game (this is the only required work beyond
    content itself):
    - `project.godot`: `config/name`, `config/icon`.
-   - `resources/` and `levels/`: replace the example `.tres` files (items,
-     dialogue, animation sets) and demo levels with real content.
+   - `resources/`: replace the example `.tres` files (items, dialogue,
+     animation sets) with real content. `levels/` starts empty — build
+     your own levels there (see `docs/getting_started.md` step 2).
    - `translations/*.csv`: new keys/text for that game. Re-run
      `tools/setup_project.gd` after adding a new CSV file (not just editing
      an existing one) so its generated `.translation` resources get
@@ -130,10 +131,11 @@ project to duplicate.
   shared with the in-editor equivalent — Project > Tools > "Apply Retro
   Style Settings..." (added by `addons/retro_visual_style`) — so changes
   made through Project Settings can be applied without a terminal.
-- `tools/smoke_test.gd` — boots the persistent Main shell, starts a new game
-  into the demo level, and checks the player/level/inventory came up clean
-  (`godot --headless -s res://tools/smoke_test.gd`). Useful after touching
-  the autoloads or Main/Player scenes.
+- `tools/smoke_test.gd` — boots the persistent Main shell and checks it
+  settles cleanly at the main menu (`godot --headless -s
+  res://tools/smoke_test.gd`). Useful after touching the autoloads or
+  Main/Player scenes; not a substitute for playing a real level once one
+  exists.
 
 After adding or renaming a `class_name` script, rebuild the editor's global
 class cache before relying on headless runs: `godot --headless --editor
@@ -174,8 +176,8 @@ terminal needed.
 The same idea applies to world objects. `core/world_item/world_item.gd`
 (`WorldItem`, `class_name` + `@tool`) is a node added like any other
 (Create New Node > WorldItem) with a `kind` export toggling between
-PHYSICAL (a grabbable prop: `RigidBody3D` + `Grabbable`, like the demo
-Crate) and PICKUPABLE (`StaticBody3D` + `InteractableComponent` +
+PHYSICAL (a grabbable prop: `RigidBody3D` + `Grabbable`, like a crate)
+and PICKUPABLE (`StaticBody3D` + `InteractableComponent` +
 `ItemPickup`) — it builds/rebuilds the right body itself, same
 model/material/body_size exports as `NpcBody`. `core/world_item/world_item.tscn`
 is the same prefab shortcut as `npc_body.tscn` above (default `kind` =

@@ -70,8 +70,9 @@ Compatibility renderer. Practically, this means:
 
 Walls, floors, ceilings, stairs, large fixed set pieces — anything that
 becomes non-moving level geometry, dropped into a level scene under
-`levels/` as a `StaticBody3D` (mesh + collision, the same pattern as the
-`Floor` node in `levels/demo/demo_level_1.tscn`).
+`levels/` as a `StaticBody3D` (mesh + collision — see
+[`docs/getting_started.md`](getting_started.md) step 2 for the minimum
+viable floor built this way).
 
 - **Build modular.** Model reusable pieces on a fixed grid unit (e.g. a 2 m or
   4 m wall/floor module) rather than one bespoke mesh per room. Levels get

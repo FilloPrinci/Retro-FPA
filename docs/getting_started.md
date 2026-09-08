@@ -42,9 +42,9 @@ to the master template copy).
 
 Run `tools/smoke_test.gd` any time you want a quick sanity check that
 nothing is broken (`godot --headless -s res://tools/smoke_test.gd`) — it
-boots the persistent shell, starts a new game into whatever
-`first_level_path` points at, and checks the player/level/inventory came
-up clean.
+boots the persistent shell and checks it settles cleanly at the main
+menu. Once you have a real first level, prefer just playing it — this
+stays a "did I break the boot path" check, not a substitute.
 
 ## 1. Pick a visual style
 
@@ -81,9 +81,7 @@ threshold/blend mode to taste.
 A level is just a scene under `levels/` containing geometry, `SpawnPoint`s,
 NPCs and triggers — **never** the player, **never** menus (`Player` is
 instantiated once by the persistent shell and survives scene changes;
-menus live in `ui/main/main.tscn`'s `UILayer`, always present). Look at
-`levels/demo/demo_level_1.tscn` for a working reference if you want one
-side by side while you build your own.
+menus live in `ui/main/main.tscn`'s `UILayer`, always present).
 
 Minimum viable level:
 
@@ -242,10 +240,7 @@ whatever it hits, the same "look at the hit collider's children" pattern
 
 ## 8. A second level, and a way to get there
 
-Build a second level the same way as step 2 (or start from one of the two
-ready-made examples already in the repo:
-`levels/demo/exclusive_target.tscn` and `levels/demo/additive_target.tscn`
-— small, self-contained, safe to look at or copy from).
+Build a second level the same way as step 2.
 
 Drag **`core/scene_management/scene_change_trigger.tscn`** into your first
 level, near a doorway or the edge you want to leave through. In the

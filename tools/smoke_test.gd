@@ -1,8 +1,15 @@
 extends SceneTree
-## Headless smoke test for the persistent shell + new-game flow. Dev tool,
-## not gameplay code — run it after touching the autoloads or the Main/
-## Player scenes.
+## Headless smoke test for the persistent shell's boot path. Dev tool, not
+## gameplay code — run it after touching the autoloads or the Main/Player
+## scenes.
 ## Run: godot --headless -s res://tools/smoke_test.gd
+##
+## A bare template has no first level yet (MainMenu.first_level_path is
+## empty until a new game sets it — see docs/getting_started.md step 0),
+## so this only checks that Main boots cleanly and settles into
+## GameManager.state == MAIN_MENU with no player spawned yet. Once your
+## game has a real first level, prefer just playing it — this stays a
+## quick "did I break the boot path" check, not a substitute.
 ##
 ## Autoload singletons are fetched via get_node() instead of their global
 ## identifiers: this script runs as the custom MainLoop itself, compiled
@@ -10,29 +17,20 @@ extends SceneTree
 ## identifier table (unlike ordinary scene scripts, which compile later).
 
 func _initialize() -> void:
-	var scene_manager := root.get_node("SceneManager")
 	var game_manager := root.get_node("GameManager")
-	var inventory_manager := root.get_node("InventoryManager")
 
 	var main_scene: PackedScene = load("res://ui/main/main.tscn")
 	var main := main_scene.instantiate()
 	root.add_child(main)
-	await process_frame
-	await process_frame
-
-	print("[smoke_test] triggering start_new_game...")
-	await scene_manager.start_new_game("res://levels/demo/demo_level_1.tscn")
 
 	for i in 5:
 		await process_frame
 
 	var player = game_manager.get_player()
-	print("[smoke_test] player: ", player)
 	print("[smoke_test] state: ", game_manager.state)
-	print("[smoke_test] level children: ", main.get_node("CurrentLevel").get_children())
-	print("[smoke_test] inventory slots: ", inventory_manager.get_slots().size())
+	print("[smoke_test] player (should be null — nothing spawns one before a game starts): ", player)
 
-	if player and game_manager.state == 1:  # GameState.PLAYING
+	if player == null and game_manager.state == 0:  # GameState.MAIN_MENU
 		print("[smoke_test] PASS")
 	else:
 		print("[smoke_test] FAIL")

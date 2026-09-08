@@ -276,7 +276,7 @@ differently-named clips work against the same calling code.
 quadruped's `"run"`, ...) — one `.tres` per character type under
 `resources/animation_sets/`, see
 [`blender_workflow.md`](blender_workflow.md) for authoring the actual
-clips. `levels/demo/animation_demo.tscn` is a working example to look at.
+clips.
 
 **Player-side components** (already wired on `player.tscn`, not
 something you add per-level, but worth knowing what each one does):

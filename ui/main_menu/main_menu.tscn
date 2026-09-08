@@ -22,7 +22,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
-first_level_path = "res://levels/showcase/showcase_hall.tscn"
 
 [node name="Panel" type="PanelContainer" parent="." unique_id=128466314]
 layout_mode = 0
